@@ -1,0 +1,33 @@
+<table class="dataTable border bordered" data-role="datatable" data-auto-width="false">
+    <thead>
+    <tr>
+        <td style="width: 20px">
+        </td>
+        <td class="sortable-column sort-asc" style="width: 100px">ID</td>
+        <td class="sortable-column">Machine name</td>
+        <td class="sortable-column">Address</td>
+        <td class="sortable-column" style="width: 20px">Status</td>
+        <td style="width: 20px">Switch</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr v-for="item in lists">
+        <td>
+            <label class="input-control checkbox small-check no-margin">
+                <input type="checkbox">
+                <span class="check"></span>
+            </label>
+        </td>
+        <td>{{item.bugzillaid}}</td>
+        <td>{{item.name}}</td>
+        <td><a >{{item.ownerid}}</a></td>
+        <td class="align-center"><span class="mif-checkmark fg-green">{{item.status}}</span></td>
+        <td>
+            <label class="switch-original">
+                <input type="checkbox" checked>
+                <span class="check"></span>
+            </label>
+        </td>
+    </tr>
+    </tbody>
+</table>

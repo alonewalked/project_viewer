@@ -1,0 +1,27 @@
+<div class="bg-darkTeal" >
+<div class="login-form padding20 block-shadow" style="opacity: 1; transform: scale(1); transition: 0.5s;">
+    <form>
+        <h1 class="text-light">登录</h1>
+        <hr class="thin">
+        <br>
+        <div class="input-control text full-size" data-role="input">
+            <label for="user_login">用户名:</label>
+            <input type="text" name="user_login" v-model="username" style="padding-right: 39px;">
+            <button class="button helper-button clear" tabindex="-1" type="button"><span class="mif-cross"></span></button>
+        </div>
+        <br>
+        <br>
+        <div class="input-control password full-size" data-role="input">
+            <label for="user_password">密码:</label>
+            <input type="password" name="user_password" v-model="password" style="padding-right: 39px;" @keyup.13="login">
+            <button class="button helper-button reveal" tabindex="-1" type="button"><span class="mif-looks"></span></button>
+        </div>
+        <br>
+        <br>
+        <div class="form-actions">
+            <button type="button" class="button primary" @click.prevent="login" >登录...</button>
+            <button type="button" class="button link">取消</button>
+        </div>
+    </form>
+</div>
+</div>

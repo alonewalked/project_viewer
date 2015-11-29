@@ -1,0 +1,204 @@
+<html>
+<head>
+    <title>Test</title>
+    <link href="assets/metro.css" rel="stylesheet">
+    <link href="assets/metro-icons.css" rel="stylesheet">
+    <link href="assets/metro-responsive.css" rel="stylesheet"> 
+    <link href="assets/metro-schemes.css" rel="stylesheet">
+    <link href="assets/docs.css" rel="stylesheet">
+    <script src="assets/jquery.js" ></script>
+    <script src="assets/metro.js" ></script>
+</head>
+<body>
+<div class="container">
+<div class="main-content clear-float">
+    <div class="tile-area no-padding">
+        <div class="tile-group no-margin no-padding" style="width: 100%">
+        <div class="tile-square tile-super-y bg-gray ol-transparent" style="float: right; ">
+            <div class="tile-content">
+                <div class="brand padding10">
+                    <h3 class="fg-white">Logs</h3>
+                    <!-- Google adsense block -->
+                    <div style="word-break:break-all; word-wrap:break-word ;"> 
+                    <p id="div_info" ></p>
+                    </div> 
+                    <!-- End of gad block -->
+                    <!-- Google adsense block -->
+                    <br>
+                    <br> 
+                    <div id="div_error"> </div> 
+                    <!-- End of gad block -->
+                </div>
+            </div>
+            
+        </div>
+        <!-- left -->
+        <div style="float:left;width:80%">
+            <div class="wizard2"
+            data-role="wizard2" data-button-labels='{"help": "?", "prev": "<span class=\"mif-arrow-left\"></span>", "next": "<span class=\"mif-arrow-right\"></span>", "finish": "<span class=\"mif-checkmark\"></span>"}'>
+                <div class="step">
+                    <div class="step-content">
+                        <h1 class="no-margin-top">User</h1>
+                        <a href="javascript;" data-new-user="1"> 
+                        <div class="tile bg-steel fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon "><span class="text-small fg-white">new user</span></span>
+                            </div>
+                        </div></a>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <h1 class="no-margin-top">Project</h1>
+                        <a href="javascript;" data-new-project="1">
+                        <div class="tile bg-lightBlue fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon "><span class="text-small fg-white">new project</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-upd-project="1"> 
+                        <div class="tile bg-amber fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon"><span class="text-small fg-white">upd project</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-get-project="1">
+                        <div class="tile bg-orange fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon  text-small"><span class="text-small fg-white">get project sort</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-upd-proendtime="1">
+                        <div class="tile bg-teal fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">upd project endtime</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-get-propager="1">
+                        <div class="tile bg-lightRed fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small" ><span class="text-small fg-white">get project by pager</span></span>
+                            </div>
+                        </div></a>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <h1 class="no-margin-top">Branch</h1>
+                        <a href="javascript;" data-add-branch="1"> 
+                        <div class="tile bg-lighterBlue fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">add branch</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-branch4pro="1"> 
+                        <div class="tile bg-lightPink fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">branch into project</span></span>
+                            </div>
+                        </div></a> 
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <h1 class="no-margin-top">Fakeapi</h1>
+                        <a href="javascript;" data-add-api2prj="1"> 
+                        <div class="tile bg-green fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">add api to project</span></span>
+                            </div>
+                        </div></a>
+                        
+                    </div>
+                </div>
+            </div> 
+        </div>
+        </div>
+        
+    </div>
+    
+</div>
+</div>
+</body>
+<script>
+var gui = require('nw.gui');
+var win = gui.Window.get();
+var basic = require('./index');
+var test = require('./test');
+var btnNewPrj = $('[data-new-project]');
+var btnGetPrj = $('[data-get-project]');
+var btnNewUser = $('[data-new-user]');
+var btnUpdPrj = $('[data-upd-project]');
+var btnUpdEnd = $('[data-upd-proendtime]');
+var btnProPager = $('[data-get-propager]');
+var btnAddApi2Pro = $('[data-add-api2prj]');
+var btnAddBranch = $('[data-add-branch]');
+var btnBranch4Pro = $('[data-branch4pro]');
+
+var start  = function(){
+    test('login',function(d){
+        $('#div_info').html('logined:<br/>'+JSON.stringify(d));
+    });
+    btnNewPrj.on('click',function(e){
+        e.preventDefault();
+        test('pro_new',function(d){
+            $('#div_info').html('new projects and create branch:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnNewUser.on('click',function(e){
+        e.preventDefault();
+        test('user_new',function(d){
+            $('#div_info').html('new user with conflict name:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnUpdPrj.on('click',function(e){
+        e.preventDefault();
+        test('proaddpage',function(d){
+            $('#div_info').html('add test page:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnGetPrj.on('click',function(e){
+        e.preventDefault();
+        test('pro',function(d){
+            $('#div_info').html('get project using limit and sort:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnUpdEnd.on('click',function(e){
+        e.preventDefault();
+        test('pro_upd_endtime',function(d){
+            $('#div_info').html('update project endtime:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnProPager.on('click',function(e){
+        e.preventDefault();
+        test('pro_pager',function(d){
+            $('#div_info').html('get project pager:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnAddApi2Pro.on('click',function(e){
+        e.preventDefault();
+        test('api+pro',function(d){
+            $('#div_info').html('add api to project:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnAddBranch.on('click',function(e){
+        e.preventDefault();
+        test('branch_new',function(d){
+            $('#div_info').html('add branch:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnBranch4Pro.on('click',function(e){
+        e.preventDefault();
+        test('branch_pro',function(d){
+            $('#div_info').html('project from branch:<br/>'+JSON.stringify(d));
+        });
+    });
+} 
+win.on('close', function() {
+   basic.app.exit();
+   this.close(true);
+});
+
+start();
+</script>
+</html>
