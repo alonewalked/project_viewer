@@ -19,7 +19,7 @@
                 <div class="brand padding10">
                     <h3 class="fg-white">Logs</h3>
                     <!-- Google adsense block -->
-                    <div style="word-break:break-all; word-wrap:break-word ;"> 
+                    <div class="bsuggest"> 
                     <p id="div_info" ></p>
                     </div> 
                     <!-- End of gad block -->
@@ -43,6 +43,18 @@
                         <div class="tile bg-steel fg-white" data-role="tile">
                             <div class="tile-content iconic">
                                 <span class="icon "><span class="text-small fg-white">new user</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-setting-user="1"> 
+                        <div class="tile bg-orange fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon "><span class="text-small fg-white">update setting</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-upd-user="1"> 
+                        <div class="tile bg-lighterBlue fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon "><span class="text-small fg-white">update user</span></span>
                             </div>
                         </div></a>
                     </div>
@@ -96,7 +108,13 @@
                             <div class="tile-content iconic">
                                 <span class="icon text-small"><span class="text-small fg-white">branch into project</span></span>
                             </div>
-                        </div></a> 
+                        </div></a>
+                        <a href="javascript;" data-branch_find="1"> 
+                        <div class="tile bg-steel fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">get branch</span></span>
+                            </div>
+                        </div></a>
                     </div>
                 </div>
                 <div class="step">
@@ -128,12 +146,15 @@ var test = require('./test');
 var btnNewPrj = $('[data-new-project]');
 var btnGetPrj = $('[data-get-project]');
 var btnNewUser = $('[data-new-user]');
+var btnUpdUser = $('[data-upd-user]');
+var btnSetUser = $('[data-setting-user]');
 var btnUpdPrj = $('[data-upd-project]');
 var btnUpdEnd = $('[data-upd-proendtime]');
 var btnProPager = $('[data-get-propager]');
 var btnAddApi2Pro = $('[data-add-api2prj]');
 var btnAddBranch = $('[data-add-branch]');
 var btnBranch4Pro = $('[data-branch4pro]');
+var btnBranchFind = $('[data-branch_find]');
 
 var start  = function(){
     test('login',function(d){
@@ -149,6 +170,18 @@ var start  = function(){
         e.preventDefault();
         test('user_new',function(d){
             $('#div_info').html('new user with conflict name:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnUpdUser.on('click',function(e){
+        e.preventDefault();
+        test('user_upd',function(d){
+            $('#div_info').html('upd user :<br/>'+JSON.stringify(d));
+        });
+    });
+    btnSetUser.on('click',function(e){
+        e.preventDefault();
+        test('user_setting',function(d){
+            $('#div_info').html('user setting:<br/>'+JSON.stringify(d));
         });
     });
     btnUpdPrj.on('click',function(e){
@@ -191,6 +224,12 @@ var start  = function(){
         e.preventDefault();
         test('branch_pro',function(d){
             $('#div_info').html('project from branch:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnBranchFind.on('click',function(e){
+        e.preventDefault();
+        test('branch_find',function(d){
+            $('#div_info').html('get branch:<br/>'+JSON.stringify(d));
         });
     });
 } 

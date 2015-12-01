@@ -209,9 +209,17 @@ DaoBase.prototype.update = function(conditions, update, callback) {
 };
 
 DaoBase.prototype.findAndUpdate = function(conditions, update, callback) {
+    var _query = (function(){
+        for(var k in conditions){
+            if(update[k]){
+                return update;
+            }
+        }
+        return conditions;
+    })();
     var deferred = $q.defer();
     var _def = this.update(conditions, update, callback);
-    var _def2 = this.getByQuery(conditions,callback);
+    var _def2 = this.getByQuery(_query,callback);
     $q.all([_def, _def2])
     .spread(function (r1,r2) {  //对应的多个返回值
         if(r2){
@@ -219,7 +227,7 @@ DaoBase.prototype.findAndUpdate = function(conditions, update, callback) {
         }
     })
     .fail(function(error) {
-        deferred.reject(errorHandler.handle(error));
+        deferred.reject(error);
     });
     return deferred.promise.nodeify(callback);
 };

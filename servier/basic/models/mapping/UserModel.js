@@ -9,7 +9,8 @@ var schema = new Schema({
     email:String,
     psetting:{
         "projectfilter" : Number,
-        "idepath" : String
+        "idepath" : String,
+        "workspaceroot": String
     }
 });
 schema.path('name').validate(function(value, done) {

@@ -38,6 +38,7 @@ var app = {
     启动
     @param {String} url 数据库连接地址，默认ife; e.g. mongodb://10.1.30.43:27017/tj
 */ 
+
 app.start('',function(data){
     console.log(JSON.stringify(data)); 
 });

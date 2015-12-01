@@ -131,7 +131,7 @@ module.exports = {
      * @param {Function} callback(data) 
     */
     addTestApi: function(pid,aid,callback){
-        var finder = projectDao.update({"_id":pid}, {'$addToSet':{"apialiasid":aid}});
+        var finder = projectDao.findAndUpdate({"_id":pid}, {'$addToSet':{"apialiasid":aid}});
         if(callback){
             return finder.then(callback,callback);
         }

@@ -1,6 +1,7 @@
 // user api
 var userDao = require('../dao/userDao');
 var instance = require('../instance');
+var $q = require('q');
 module.exports = {
     /* 添加 user
      * @param {Object} doc
@@ -29,13 +30,70 @@ module.exports = {
         else if(typeof id === 'string'){
             id = {_id:id};
         }
-        var finder = userDao.update(id,doc);
+        var iscurrent = (id._id === instance.getCurrentUserid());
+        var _reset_fn = function(d1){
+            var deferred = $q.defer();
+            if(d1.data && d1.data[0]){
+                instance.updCurrentUser(d1.data[0]);
+            }
+            deferred.resolve(d1);
+            return deferred.promise    
+        };
+        var finder = userDao.findAndUpdate(id,doc);
+        if(iscurrent){
+            finder = finder.then(_reset_fn,callback);
+        }
         if(callback){
             return finder.then(callback,callback);
         }
         else{
             return finder;
         }
+    },
+    /* 修改用户个人设置
+     * @param {String} id / {Object} id
+       @param {Object} setting
+     * @param {Function} callback(data) 
+    */
+    updateSetting:function(id,setting,callback){
+        setting = setting || {};
+        var finder, _find_fn, _reset_fn, newsetting,
+        keys = Object.keys(setting);
+        if(!id){
+            id = {_id:instance.getCurrentUserid()};
+        }
+        else if(typeof id === 'string'){
+            id = {_id:id};
+        }
+        var iscurrent = (id._id === instance.getCurrentUserid());
+        _find_fn = function(d1){
+            if(d1.data){
+                newsetting = d1.data.psetting || {};
+                keys.forEach(function(i){
+                    newsetting[i] = setting[i];
+                });
+                return userDao.findAndUpdate(id,{psetting:newsetting});
+            }
+        };
+        _reset_fn = function(d2){
+            var deferred = $q.defer();
+            if(d2.data && d2.data[0]){
+                instance.updCurrentUser(d2.data[0]);
+            }
+            deferred.resolve(d2);
+            return deferred.promise
+        }; 
+        var finder = userDao.getOne(id).then(_find_fn,callback);
+        if(iscurrent){
+            finder = finder.then(_reset_fn,callback);
+        }
+        if(callback){
+            return finder.then(callback,callback);
+        }
+        else{
+            return finder;
+        }
+        
     },
     /* 查询用户
      * @param {Object} condition

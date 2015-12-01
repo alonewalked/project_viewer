@@ -29,5 +29,5 @@ module.exports = {
         else{
             return finder;
         }
-    },
+    }
 }

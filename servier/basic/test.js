@@ -4,7 +4,7 @@ var branchs = require('./apis/branchs'),
     projects = require('./apis/projects'),
     fakeapis = require('./apis/fakeapis'),
     users = require('./apis/users');
-    
+var instance = require('./instance');  
 var start = function(cmd,callback){
     switch(cmd){
     case 'login':   //√
@@ -21,6 +21,13 @@ var start = function(cmd,callback){
             callback(data); 
         });
         break;
+    case 'user_setting':   //√
+        var _b = instance.getWorkspaceRoot();
+        users.updateSetting('',{workspaceroot:'\\test\\'+Date.now()},function(data){
+            callback(data); 
+            console.log('before: '+_b+'\r\n after: '+instance.getWorkspaceRoot())
+        });
+        break;
     case 'pro':  //√
         projects.getByQuery({},{
             limit:3,
@@ -32,9 +39,9 @@ var start = function(cmd,callback){
     case 'pro_pager':  //√
         projects.getByQuery({},{
             sort:'-launchdate',
-            no:2,
-            pagesize:2,
-            ref:['ownerid','apialiasid']
+            no:1,
+            pagesize:10,
+            ref:['ownerid']
         },function(data){
             callback(data); 
         });
@@ -42,7 +49,7 @@ var start = function(cmd,callback){
     case 'api+pro':   //√ 
         var _fid,_pid;
         var _def = fakeapis.create({
-            alias:'test_'+(Date.now()),
+            alias:'test_1'+(Date.now()),
             apiname:'test',
             hostname:'www.iqiyi.com',
             path:'ife'
@@ -71,7 +78,7 @@ var start = function(cmd,callback){
         });
         break;
     case 'user_upd':
-        users.update({"name":"test1"},{'$inc':{'employid':1} },function(data){
+        users.update({"name":"test1"},{'name':'test2'},function(data){
             callback(data); 
         });
         break;
@@ -132,6 +139,7 @@ var start = function(cmd,callback){
             if(r1&&r2){
                 _bid = r1.data&&r1.data._id.toString();
                 _pid = r2.data&&r2.data._id.toString();
+                _pid = _pid+','+'565bc5c1e1342bb007de9c3f';
                 branchs.setRelativeProject(_bid,_pid,callback);
             }
         })
@@ -139,10 +147,16 @@ var start = function(cmd,callback){
             callback(data);
         });
         break;
-    case 'branch_find':
-        branchs.getByUser(null,function(data){
+    case 'branch_find': // √
+        branchs.getByQuery({},{
+            //ref:['projectids']
+        },
+        function(data){
             callback(data);
-        }); 
+        });
+        /*branchs.getByUser(null,function(data){
+            callback(data);
+        });*/ 
         break;
     case 'branch_pro': // √
         var _getlast_fn = function(d){

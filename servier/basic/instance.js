@@ -18,6 +18,9 @@ module.exports = {
         currentPassword = pwd;
         logged = true;
     },
+    updCurrentUser: function(user){
+        currentUser = user;
+    },
     getCurrentUserName: function(){
         return currentUser?currentUser.name:'';
     },
@@ -29,5 +32,15 @@ module.exports = {
     },
     isLoggedin: function(){
         return !!currentUser && !!logged;
+    },
+    getUserSetting: function(){
+        if(!currentUser){
+            return null;
+        }
+        return currentUser.psetting;
+    },
+    getWorkspaceRoot: function(){
+        var setting = this.getUserSetting();
+        return setting?setting['workspaceroot']:'';
     }
 };

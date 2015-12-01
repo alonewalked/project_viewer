@@ -87,7 +87,7 @@ module.exports = {
     */
     getByQuery: function(condition,options,callback){
         condition = condition || {};
-        var finder = userDao.getByMutilQuery(condition,options);
+        var finder = branchDao.getByMutilQuery(condition,options);
         if(callback){
             return finder.then(callback,callback);
         }
@@ -114,7 +114,12 @@ module.exports = {
      * @param {Function} callback(data) 
     */
     setRelativeProject: function(bid,pid,callback){
-        var finder = branchDao.findAndUpdate({"_id":bid}, {'$addToSet':{"projectids":pid}});
+        pid = pid || '';
+        pid = pid.split(',');
+        var finder = branchDao.findAndUpdate(
+            {"_id":bid}, 
+            {'$addToSet':{"projectids":{$each: pid}}}
+        );
         if(callback){
             return finder.then(callback,callback);
         }

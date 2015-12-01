@@ -14,4 +14,13 @@ var schema = new Schema({
     data:{ type:String } // 接口返回值json string
 });
 
+schema.path('alias').validate(function(value, done) {
+    this.model('FakeApi').count({ alias: value }, function(err, count) {
+        if (err) {
+            return done(err);
+        } 
+        done(!count);
+    });
+}, 'api alias already exists');
+
 mongoose.model('FakeApi', schema);
