@@ -1,0 +1,11 @@
+<div class="dialog modal-wrapper" v-show="shown">
+<div class="panel" style=" height: 100%; ">
+    <div class="heading">
+        <h6 class="title">{{$data.header}}</h6>
+    </div>
+    <div class="content padding10" v-el:content style=" height:100%; ">
+        <div v-if="shown"></div>
+    </div>
+</div>
+<span class="dialog-close-button" v-on:click.pervent="close"></span></div>
+<div class="dialog-overlay op-dark" v-if="shown"></div>

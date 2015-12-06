@@ -59,10 +59,21 @@ projects.getByQuery({},{
     sort:'-launchdate', // 按创建时间排序
     no:2,               // 请求第2页数据
     pagesize:2,         // 每页2条数据
-    ref:['ownerid']     // 需要获取外键关联表的字段
+    ref:['ownerid'],    // 需要获取外键关联表的字段
+    deepref:{'projectids':['apialiasid','ownerid']}  // 深层获取依赖
 },function(data){
     callback(data); 
 });
+```
+
+通过branch获取相关project
+1. 只获取project
+```
+branchs.getProjectsByBranch(bid,callback);
+```
+2. 获取project及project内api、uesr表信息
+```
+branchs.getProjectsByBranch(bid,['apialiasid','ownerid'],callback);
 ```
 
 接口支持promise

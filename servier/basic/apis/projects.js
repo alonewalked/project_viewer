@@ -29,7 +29,7 @@ module.exports = {
         if(typeof id === 'string'){
             id = {_id:id};
         }
-        var finder = projectDao.update(id,doc);
+        var finder = projectDao.findAndUpdate(id,doc);
         if(callback){
             return finder.then(callback,callback);
         }
@@ -74,7 +74,8 @@ module.exports = {
     */
     suggest: function(word,callback){
         word = word || '';
-        var finder = projectDao.getByQuery({name:new Regex(word+'.*','ig')});
+        var reg = new RegExp(word+'.*','ig');
+        var finder = projectDao.getByQuery({name: { $regex: reg }});
         if(callback){
             return finder.then(callback,callback);
         }
@@ -138,5 +139,13 @@ module.exports = {
         else{
             return finder;
         }
+    },
+    /* 设置项目状态
+     * @param {String} pid project id
+     * @param {Number} state 状态
+     * @param {Function} callback(data) 
+    */
+    setProjectStatus: function(pid,state,callback){
+        return this.update({_id:pid},{status:state},callback);
     }
 }

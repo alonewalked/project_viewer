@@ -1,0 +1,30 @@
+<div class="grid">
+<div class="row">
+    <div class="cell">
+        <label>分支名</label>
+        <div class="input-control text full-size">
+            <input type="text" placeholder="Input you text here..." v-model="bname">
+        </div>
+    </div>
+</div>
+<!--<div class="row">
+    <div class="cell">
+        <label>分支目录</label>
+        <div class="input-control text full-size">
+            <input type="text" placeholder="Input you text here..." >
+        </div>
+    </div>
+</div>-->
+<div class="row">
+    <div class="cell">
+        <div class="input-control select full-size">
+            <select v-model="ptype">
+                <option v-for="opt in ptypes" v-bind:value="opt.value">
+                {{ opt.text }}
+              </option>
+            </select>
+        </div>
+    </div>
+</div>   
+</div>
+<input type="hidden" v-model="pid">

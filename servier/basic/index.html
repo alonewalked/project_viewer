@@ -13,6 +13,10 @@
 <div class="container">
 <div class="main-content clear-float">
     <div class="tile-area no-padding">
+        <ul class="h-menu block-shadow-impact">
+            <li><a href="#" data-backup="1">backup</a></li>
+            <li><a href="#" data-restore="1">restore</a></li>
+        </ul>
         <div class="tile-group no-margin no-padding" style="width: 100%">
         <div class="tile-square tile-super-y bg-gray ol-transparent" style="float: right; ">
             <div class="tile-content">
@@ -57,6 +61,12 @@
                                 <span class="icon "><span class="text-small fg-white">update user</span></span>
                             </div>
                         </div></a>
+                        <a href="javascript;" data-set-curr="1"> 
+                        <div class="tile bg-yellow fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon "><span class="text-small fg-white">set current project</span></span>
+                            </div>
+                        </div></a>
                     </div>
                 </div>
                 <div class="step">
@@ -74,10 +84,16 @@
                                 <span class="icon"><span class="text-small fg-white">upd project</span></span>
                             </div>
                         </div></a>
+                        <a href="javascript;" data-state-project="1"> 
+                        <div class="tile bg-steel fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon"><span class="text-small fg-white">set project state</span></span>
+                            </div>
+                        </div></a>
                         <a href="javascript;" data-get-project="1">
                         <div class="tile bg-orange fg-white" data-role="tile">
                             <div class="tile-content iconic">
-                                <span class="icon  text-small"><span class="text-small fg-white">get project sort</span></span>
+                                <span class="icon text-small"><span class="text-small fg-white">get project sort</span></span>
                             </div>
                         </div></a>
                         <a href="javascript;" data-upd-proendtime="1">
@@ -115,6 +131,18 @@
                                 <span class="icon text-small"><span class="text-small fg-white">get branch</span></span>
                             </div>
                         </div></a>
+                        <a href="javascript;" data-branch_deepfind="1"> 
+                        <div class="tile bg-yellow fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">deep find branch</span></span>
+                            </div>
+                        </div></a>
+                        <a href="javascript;" data-branch_del="1"> 
+                        <div class="tile bg-orange fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">del branch</span></span>
+                            </div>
+                        </div></a>
                     </div>
                 </div>
                 <div class="step">
@@ -126,7 +154,23 @@
                                 <span class="icon text-small"><span class="text-small fg-white">add api to project</span></span>
                             </div>
                         </div></a>
-                        
+                        <a href="javascript;" data-del-api="1"> 
+                        <div class="tile bg-lighterBlue fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">del api</span></span>
+                            </div>
+                        </div></a>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <h1 class="no-margin-top">Server Config</h1>
+                        <a href="javascript;" data-init-serverconfig="1"> 
+                        <div class="tile bg-lightRed fg-white" data-role="tile">
+                            <div class="tile-content iconic">
+                                <span class="icon text-small"><span class="text-small fg-white">init server config</span></span>
+                            </div>
+                        </div></a>
                     </div>
                 </div>
             </div> 
@@ -147,14 +191,22 @@ var btnNewPrj = $('[data-new-project]');
 var btnGetPrj = $('[data-get-project]');
 var btnNewUser = $('[data-new-user]');
 var btnUpdUser = $('[data-upd-user]');
+var btnSetProj = $('[data-set-curr]');
 var btnSetUser = $('[data-setting-user]');
 var btnUpdPrj = $('[data-upd-project]');
+var btnStatePrj = $('[data-state-project]');
 var btnUpdEnd = $('[data-upd-proendtime]');
 var btnProPager = $('[data-get-propager]');
 var btnAddApi2Pro = $('[data-add-api2prj]');
+var btnDelApi = $('[data-del-api]');
 var btnAddBranch = $('[data-add-branch]');
 var btnBranch4Pro = $('[data-branch4pro]');
 var btnBranchFind = $('[data-branch_find]');
+var btnBranchDeepFind = $('[data-branch_deepfind]');
+var btnBranchDel = $('[data-branch_del]');
+var btnServer = $('[data-init-serverconfig]');
+var btnBackup = $('[data-backup]');
+var btnRestore = $('[data-restore]');
 
 var start  = function(){
     test('login',function(d){
@@ -178,6 +230,12 @@ var start  = function(){
             $('#div_info').html('upd user :<br/>'+JSON.stringify(d));
         });
     });
+    btnSetProj.on('click',function(e){
+        e.preventDefault();
+        test('user_curr_project',function(d){
+            $('#div_info').html('set current project :<br/>'+JSON.stringify(d));
+        });
+    });
     btnSetUser.on('click',function(e){
         e.preventDefault();
         test('user_setting',function(d){
@@ -188,6 +246,12 @@ var start  = function(){
         e.preventDefault();
         test('proaddpage',function(d){
             $('#div_info').html('add test page:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnStatePrj.on('click',function(e){
+        e.preventDefault();
+        test('pro_upd_state',function(d){
+            $('#div_info').html('set project state:<br/>'+JSON.stringify(d));
         });
     });
     btnGetPrj.on('click',function(e){
@@ -214,6 +278,12 @@ var start  = function(){
             $('#div_info').html('add api to project:<br/>'+JSON.stringify(d));
         });
     });
+    btnDelApi.on('click',function(e){
+        e.preventDefault();
+        test('api_del',function(d){
+            $('#div_info').html('del api:<br/>'+JSON.stringify(d));
+        });
+    });
     btnAddBranch.on('click',function(e){
         e.preventDefault();
         test('branch_new',function(d){
@@ -230,6 +300,36 @@ var start  = function(){
         e.preventDefault();
         test('branch_find',function(d){
             $('#div_info').html('get branch:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnBranchDeepFind.on('click',function(e){
+        e.preventDefault();
+        test('branch_deepfind',function(d){
+            $('#div_info').html('deep find branch:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnBranchDel.on('click',function(e){
+        e.preventDefault();
+        test('branch_del',function(d){
+            $('#div_info').html('del branch:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnServer.on('click',function(e){
+        e.preventDefault();
+        test('server_init',function(d){
+            $('#div_info').html('init server:<br/>'+JSON.stringify(d));
+        });
+    });
+    btnBackup.on('click',function(e){
+        e.preventDefault();
+        test('backup',function(d){
+            $('#div_info').html('backup :<br/>'+JSON.stringify(d));
+        });
+    });
+    btnRestore.on('click',function(e){
+        e.preventDefault();
+        test('recover',function(d){
+            $('#div_info').html('recover :<br/>'+JSON.stringify(d));
         });
     });
 } 

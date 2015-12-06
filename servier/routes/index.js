@@ -8,5 +8,10 @@ router.get('/', function(req, res) {
 }); */
 
 // 接口
+router.get('/api/login', service.login);
+///////////////project/////////service.getData/////////////
 router.get("/api/get_data", service.getData); 
+router.get("/api/get_serverconf", service.getServerConf); 
+router.post("/api/create_project", service.createProject);
+router.post("/api/create_branch", service.createBranch);
 module.exports = router;

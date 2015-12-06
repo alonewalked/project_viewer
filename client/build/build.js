@@ -53,21 +53,27 @@
 
 	'use strict';
 
-	var _vue = __webpack_require__(2);
+	__webpack_require__(2);
+
+	var _vue = __webpack_require__(3);
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _vueRouter = __webpack_require__(4);
+	var _vueRouter = __webpack_require__(5);
 
 	var _vueRouter2 = _interopRequireDefault(_vueRouter);
 
-	var _login = __webpack_require__(5);
+	var _login = __webpack_require__(6);
 
 	var _login2 = _interopRequireDefault(_login);
 
-	var _home = __webpack_require__(18);
+	var _home = __webpack_require__(19);
 
 	var _home2 = _interopRequireDefault(_home);
+
+	var _root = __webpack_require__(41);
+
+	var _root2 = _interopRequireDefault(_root);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -76,16 +82,22 @@
 	var router = new _vueRouter2.default();
 
 	router.map({
-	  '/login': {
-	    component: _login2.default
-	  },
-	  '/home': {
-	    component: _home2.default
-	  }
+	    '/': {
+	        name: 'root',
+	        component: _root2.default,
+	        subRoutes: {
+	            '/login': {
+	                component: _login2.default
+	            },
+	            '/home': {
+	                component: _home2.default
+	            }
+	        }
+	    }
 	});
 	router.redirect({
-	  // 重定向 /home
-	  '/': '/login'
+	    // 重定向 /home
+	    '/': '/login'
 	});
 
 	var App = _vue2.default.extend({});
@@ -93,6 +105,35 @@
 
 /***/ },
 /* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	// date js
+	// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，
+	// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
+	// 例子：
+	// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423
+	// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18
+	Date.prototype.Format = function (fmt) {
+	    //author: meizz
+	    var o = {
+	        "M+": this.getMonth() + 1, //月份
+	        "d+": this.getDate(), //日
+	        "h+": this.getHours(), //小时
+	        "m+": this.getMinutes(), //分
+	        "s+": this.getSeconds(), //秒
+	        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+	        "S": this.getMilliseconds() //毫秒
+	    };
+	    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+	    for (var k in o) {
+	        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+	    }return fmt;
+	};
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/*!
@@ -9397,10 +9438,10 @@
 	}
 
 	module.exports = Vue;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -9497,7 +9538,7 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -12036,7 +12077,7 @@
 	module.exports = Router;
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12045,17 +12086,17 @@
 	    value: true
 	});
 
-	__webpack_require__(6);
+	__webpack_require__(7);
 
-	var _login = __webpack_require__(10);
+	var _login = __webpack_require__(11);
 
 	var _login2 = _interopRequireDefault(_login);
 
-	var _vue = __webpack_require__(2);
+	var _vue = __webpack_require__(3);
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _store = __webpack_require__(11);
+	var _store = __webpack_require__(12);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -12092,16 +12133,16 @@
 	};
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(7);
+	var content = __webpack_require__(8);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(9)(content, {});
+	var update = __webpack_require__(10)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -12118,10 +12159,10 @@
 	}
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(8)();
+	exports = module.exports = __webpack_require__(9)();
 	// imports
 
 
@@ -12132,7 +12173,7 @@
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	/*
@@ -12188,7 +12229,7 @@
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -12413,13 +12454,13 @@
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"bg-darkTeal\" >\r\n<div class=\"login-form padding20 block-shadow\" style=\"opacity: 1; transform: scale(1); transition: 0.5s;\">\r\n    <form>\r\n        <h1 class=\"text-light\">登录</h1>\r\n        <hr class=\"thin\">\r\n        <br>\r\n        <div class=\"input-control text full-size\" data-role=\"input\">\r\n            <label for=\"user_login\">用户名:</label>\r\n            <input type=\"text\" name=\"user_login\" v-model=\"username\" style=\"padding-right: 39px;\">\r\n            <button class=\"button helper-button clear\" tabindex=\"-1\" type=\"button\"><span class=\"mif-cross\"></span></button>\r\n        </div>\r\n        <br>\r\n        <br>\r\n        <div class=\"input-control password full-size\" data-role=\"input\">\r\n            <label for=\"user_password\">密码:</label>\r\n            <input type=\"password\" name=\"user_password\" v-model=\"password\" style=\"padding-right: 39px;\" @keyup.13=\"login\">\r\n            <button class=\"button helper-button reveal\" tabindex=\"-1\" type=\"button\"><span class=\"mif-looks\"></span></button>\r\n        </div>\r\n        <br>\r\n        <br>\r\n        <div class=\"form-actions\">\r\n            <button type=\"button\" class=\"button primary\" @click.prevent=\"login\" >登录...</button>\r\n            <button type=\"button\" class=\"button link\">取消</button>\r\n        </div>\r\n    </form>\r\n</div>\r\n</div>";
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12428,20 +12469,24 @@
 	    value: true
 	});
 
-	var _firebase = __webpack_require__(12);
+	var _firebase = __webpack_require__(13);
 
 	var _firebase2 = _interopRequireDefault(_firebase);
 
-	var _events = __webpack_require__(13);
+	var _events = __webpack_require__(14);
 
-	var _es6Promise = __webpack_require__(14);
+	var _es6Promise = __webpack_require__(15);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var api = new _firebase2.default('https://sweltering-fire-8263.firebaseio.com/app'); // store.js
 
 	var config = {
-	    projects: 'http://localhost:1212/api/get_data'
+	    login: 'http://localhost:1212/api/login',
+	    new_project: 'http://localhost:1212/api/create_project',
+	    new_branch: 'http://localhost:1212/api/create_branch',
+	    projects: 'http://localhost:1212/api/get_data',
+	    serverconf: 'http://localhost:1212/api/get_serverconf'
 	};
 	var loginUser = null;
 	var store = new _events.EventEmitter();
@@ -12459,8 +12504,22 @@
 	    return new _es6Promise.Promise(function (resolve, reject) {
 	        api.child('users/' + uname).once('value', function (data) {
 	            if (pwd === data.val()) {
-	                loginUser = { username: uname, password: pwd };
-	                resolve(loginUser);
+	                $.ajax({
+	                    url: config['login'],
+	                    data: {
+	                        name: uname,
+	                        password: pwd,
+	                        email: uname + '@123.com'
+	                    },
+	                    dataType: 'jsonp',
+	                    success: function success(d) {
+	                        loginUser = d.data;
+	                        resolve(loginUser);
+	                    },
+	                    error: function error(err) {
+	                        reject(err);
+	                    }
+	                });
 	            } else {
 	                reject('password error');
 	            }
@@ -12480,18 +12539,67 @@
 	        dataType: 'jsonp',
 	        success: function success(d) {
 	            if (d.code === 'A00000') {
-	                storeData['projects'] = d.data;
-	                return callback(storeData['projects']);
+	                //storeData['projects'] = d;
+	                return callback(d);
 	            } else {
 	                return callback({});
 	            }
 	        }
 	    });
 	};
+	store.getServerConf = function (callback) {
+	    if (storeData['serverconfig']) {
+	        return callback(storeData['projects']);
+	    }
+	    $.ajax({
+	        url: config.serverconf,
+	        dataType: 'jsonp',
+	        success: function success(d) {
+	            if (d.code === 'A00000') {
+	                storeData['serverconfig'] = d;
+	                return callback(storeData['serverconfig']);
+	            } else {
+	                return callback({});
+	            }
+	        }
+	    });
+	};
+	store.createProject = function (doc, callback) {
+	    return new _es6Promise.Promise(function (resolve, reject) {
+	        $.ajax({
+	            type: "POST",
+	            url: config.new_project,
+	            data: doc,
+	            success: function success(d) {
+	                if (d.code === 'A00000') {
+	                    resolve(d);
+	                } else {
+	                    reject(d);
+	                }
+	            }
+	        });
+	    });
+	};
+	store.createBranch = function (doc, callback) {
+	    return new _es6Promise.Promise(function (resolve, reject) {
+	        $.ajax({
+	            type: "POST",
+	            url: config.new_branch,
+	            data: doc,
+	            success: function success(d) {
+	                if (d.code === 'A00000') {
+	                    resolve(d);
+	                } else {
+	                    reject(d);
+	                }
+	            }
+	        });
+	    });
+	};
 	exports.default = store;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	/*! @license Firebase v2.3.2
@@ -12765,7 +12873,7 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -13069,7 +13177,7 @@
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(process, global, module) {/*!
@@ -13203,7 +13311,7 @@
 	    function lib$es6$promise$asap$$attemptVertx() {
 	      try {
 	        var r = require;
-	        var vertx = __webpack_require__(16);
+	        var vertx = __webpack_require__(17);
 	        lib$es6$promise$asap$$vertxNext = vertx.runOnLoop || vertx.runOnContext;
 	        return lib$es6$promise$asap$$useVertxTimer();
 	      } catch(e) {
@@ -14028,7 +14136,7 @@
 	    };
 
 	    /* global define:true module:true window: true */
-	    if ("function" === 'function' && __webpack_require__(17)['amd']) {
+	    if ("function" === 'function' && __webpack_require__(18)['amd']) {
 	      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() { return lib$es6$promise$umd$$ES6Promise; }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	    } else if (typeof module !== 'undefined' && module['exports']) {
 	      module['exports'] = lib$es6$promise$umd$$ES6Promise;
@@ -14040,10 +14148,10 @@
 	}).call(this);
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3), (function() { return this; }()), __webpack_require__(15)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), (function() { return this; }()), __webpack_require__(16)(module)))
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -14059,20 +14167,20 @@
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = function() { throw new Error("define cannot be used indirect"); };
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14081,27 +14189,43 @@
 	    value: true
 	});
 
-	__webpack_require__(19);
+	__webpack_require__(20);
 
-	var _home = __webpack_require__(21);
+	var _home = __webpack_require__(22);
 
 	var _home2 = _interopRequireDefault(_home);
 
-	__webpack_require__(22);
+	__webpack_require__(23);
 
-	var _topheader = __webpack_require__(23);
+	var _topheader = __webpack_require__(24);
 
 	var _topheader2 = _interopRequireDefault(_topheader);
 
-	var _sidebar = __webpack_require__(25);
+	var _sidebar = __webpack_require__(26);
 
 	var _sidebar2 = _interopRequireDefault(_sidebar);
 
-	var _table = __webpack_require__(27);
+	var _modal = __webpack_require__(28);
+
+	var _modal2 = _interopRequireDefault(_modal);
+
+	var _table = __webpack_require__(32);
 
 	var _table2 = _interopRequireDefault(_table);
 
-	var _store = __webpack_require__(11);
+	var _stepper = __webpack_require__(34);
+
+	var _stepper2 = _interopRequireDefault(_stepper);
+
+	var _formproject = __webpack_require__(36);
+
+	var _formproject2 = _interopRequireDefault(_formproject);
+
+	var _formbranch = __webpack_require__(39);
+
+	var _formbranch2 = _interopRequireDefault(_formbranch);
+
+	var _store = __webpack_require__(12);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -14109,10 +14233,12 @@
 
 	exports.default = {
 	    template: _home2.default,
+	    props: ['serverconf'],
 	    components: {
 	        'top-header': _topheader2.default,
 	        'sidebar': _sidebar2.default,
-	        'data-table': _table2.default
+	        'data-table': _table2.default,
+	        'v-modal': _modal2.default
 	    },
 	    data: function data() {
 	        return {
@@ -14120,29 +14246,58 @@
 	            data: {
 	                user: null,
 	                project: null
+	            },
+	            modal: {
+	                showModal: false,
+	                conHtml: null,
+	                conHeader: '',
+	                steps: {
+	                    'form-project': _formproject2.default, 'form-branch': _formbranch2.default
+	                }
 	            }
 	        };
 	    },
 	    ready: function ready() {
 	        var me = this;
 	        this.$set('user', _store2.default.getLoginUser());
-	        _store2.default.getProject(function (data) {
-	            me.$set('project', data);
+	        _store2.default.getProject(function (d) {
+	            return me.$set('project', d.data);
 	        });
+	    },
+
+	    methods: {
+	        pushMessage: function pushMessage(cmd) {
+	            switch (cmd) {
+	                case 'newProj':
+	                    this.$set('modal.show', true);
+	                    this.$set('modal.conHtml', _stepper2.default);
+	                    this.$set('modal.conHeader', '新建项目');
+	                    break;
+	            }
+	        }
+	    },
+	    events: {
+	        'data-refresh': function dataRefresh() {
+	            var _this = this;
+
+	            _store2.default.getProject(function (d) {
+	                return _this.$set('project', d.data);
+	            });
+	        }
 	    }
 	}; // home index
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(20);
+	var content = __webpack_require__(21);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(9)(content, {});
+	var update = __webpack_require__(10)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -14159,32 +14314,32 @@
 	}
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(8)();
+	exports = module.exports = __webpack_require__(9)();
 	// imports
 
 
 	// module
-	exports.push([module.id, "html, body {\r\n    height: 100%;\r\n}\r\nbody {\r\n}\r\n.page-content {\r\n    padding-top: 3.125rem;\r\n    min-height: 100%;\r\n    height: 100%;\r\n}\r\n.table .input-control.checkbox {\r\n    line-height: 1;\r\n    min-height: 0;\r\n    height: auto;\r\n}\r\n\r\n@media screen and (max-width: 800px){\r\n    #cell-sidebar {\r\n        flex-basis: 52px;\r\n    }\r\n    #cell-content {\r\n        flex-basis: calc(100% - 52px);\r\n    }\r\n}", ""]);
+	exports.push([module.id, "html, body {\r\n    height: 100%;\r\n}\r\nbody {\r\n}\r\n.page-content {\r\n    padding-top: 3.125rem;\r\n    min-height: 100%;\r\n    height: 100%;\r\n}\r\n.table .input-control.checkbox {\r\n    line-height: 1;\r\n    min-height: 0;\r\n    height: auto;\r\n}\r\n\r\n@media screen and (max-width: 800px){\r\n    #cell-sidebar {\r\n        flex-basis: 52px;\r\n    }\r\n    #cell-content {\r\n        flex-basis: calc(100% - 52px);\r\n    }\r\n}\r\n\r\n", ""]);
 
 	// exports
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports) {
 
-	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" onclick=\"pushMessage('info')\"><span class=\"mif-plus\"></span> 新建...</button>\r\n                <button class=\"button success\" onclick=\"pushMessage('success')\"><span class=\"mif-play\"></span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\"></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>";
+	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" onclick=\"pushMessage('success')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\"></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _vue = __webpack_require__(2);
+	var _vue = __webpack_require__(3);
 
 	var _vue2 = _interopRequireDefault(_vue);
 
@@ -14213,7 +14368,7 @@
 	});
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14222,11 +14377,11 @@
 	    value: true
 	});
 
-	var _vue = __webpack_require__(2);
+	var _vue = __webpack_require__(3);
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _header = __webpack_require__(24);
+	var _header = __webpack_require__(25);
 
 	var _header2 = _interopRequireDefault(_header);
 
@@ -14245,13 +14400,13 @@
 	};
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"app-bar fixed-top darcula\" data-role=\"appbar\">\r\n        <a class=\"app-bar-element branding\">项目管理</a>\r\n        <span class=\"app-bar-divider\"></span>\r\n        <ul class=\"app-bar-menu\">\r\n            <li><a href=\"\"></a></li>\r\n            <li>\r\n                <a href=\"\" class=\"dropdown-toggle\">项目</a>\r\n                <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                    <li><a href=\"\">新建</a></li>\r\n                    <li class=\"divider\"></li>\r\n                    <li>\r\n                        <a href=\"\" class=\"dropdown-toggle\">启动</a>\r\n                        <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                            <li><a href=\"\">Project 1</a></li>\r\n                            <li><a href=\"\">Project 2</a></li>\r\n                            <li><a href=\"\">Project 3</a></li>\r\n                            <li class=\"divider\"></li>\r\n                            <li><a href=\"\">Clear list</a></li>\r\n                        </ul>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n            <li><a href=\"\"></a></li>\r\n            <li><a href=\"\"></a></li>\r\n            <li>\r\n                <a href=\"\" class=\"dropdown-toggle\">Help</a>\r\n                <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                    <li><a href=\"\">ChatOn</a></li>\r\n                    <li><a href=\"\">Community support</a></li>\r\n                    <li class=\"divider\"></li>\r\n                    <li><a href=\"\">About</a></li>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n\r\n        <div class=\"app-bar-element place-right\">\r\n            <span class=\"dropdown-toggle\"><span class=\"mif-cog\"></span>{{user.username}}</span>\r\n            <div class=\"app-bar-drop-container padding10 place-right no-margin-top block-shadow fg-dark\" data-role=\"dropdown\" data-no-close=\"true\" style=\"width: 220px\">\r\n                <h2 class=\"text-light\">Quick settings</h2>\r\n                <ul class=\"unstyled-list fg-dark\">\r\n                    <li><a href=\"\" class=\"fg-white1 fg-hover-yellow\">Profile</a></li>\r\n                    <li><a href=\"\" class=\"fg-white2 fg-hover-yellow\">Security</a></li>\r\n                    <li><a href=\"\" class=\"fg-white3 fg-hover-yellow\">Exit</a></li>\r\n                </ul>\r\n            </div>\r\n        </div>\r\n    </div>";
+	module.exports = "<div class=\"app-bar fixed-top darcula\" data-role=\"appbar\">\r\n        <a class=\"app-bar-element branding\">项目管理</a>\r\n        <span class=\"app-bar-divider\"></span>\r\n        <ul class=\"app-bar-menu\">\r\n            <li><a href=\"\"></a></li>\r\n            <li>\r\n                <a href=\"\" class=\"dropdown-toggle\">项目</a>\r\n                <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                    <li><a href=\"\">新建</a></li>\r\n                    <li class=\"divider\"></li>\r\n                    <li>\r\n                        <a href=\"\" class=\"dropdown-toggle\">启动</a>\r\n                        <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                            <li><a href=\"\">Project 1</a></li>\r\n                            <li><a href=\"\">Project 2</a></li>\r\n                            <li><a href=\"\">Project 3</a></li>\r\n                            <li class=\"divider\"></li>\r\n                            <li><a href=\"\">Clear list</a></li>\r\n                        </ul>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n            <li><a href=\"\"></a></li>\r\n            <li><a href=\"\"></a></li>\r\n            <li>\r\n                <a href=\"\" class=\"dropdown-toggle\">Help</a>\r\n                <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                    <li><a href=\"\">ChatOn</a></li>\r\n                    <li><a href=\"\">Community support</a></li>\r\n                    <li class=\"divider\"></li>\r\n                    <li><a href=\"\">About</a></li>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n\r\n        <div class=\"app-bar-element place-right\">\r\n            <span class=\"dropdown-toggle\"><span class=\"mif-cog\"></span>{{user.name}}</span>\r\n            <div class=\"app-bar-drop-container padding10 place-right no-margin-top block-shadow fg-dark\" data-role=\"dropdown\" data-no-close=\"true\" style=\"width: 220px\">\r\n                <h2 class=\"text-light\">Quick settings</h2>\r\n                <ul class=\"unstyled-list fg-dark\">\r\n                    <li><a href=\"\" class=\"fg-white1 fg-hover-yellow\">Profile</a></li>\r\n                    <li><a href=\"\" class=\"fg-white2 fg-hover-yellow\">Security</a></li>\r\n                    <li><a href=\"\" class=\"fg-white3 fg-hover-yellow\">Exit</a></li>\r\n                </ul>\r\n            </div>\r\n        </div>\r\n    </div>";
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14260,11 +14415,11 @@
 	    value: true
 	});
 
-	var _vue = __webpack_require__(2);
+	var _vue = __webpack_require__(3);
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _sidebar = __webpack_require__(26);
+	var _sidebar = __webpack_require__(27);
 
 	var _sidebar2 = _interopRequireDefault(_sidebar);
 
@@ -14278,13 +14433,13 @@
 	};
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"cell size-x200\" id=\"cell-sidebar\" style=\"background-color: #71b1d1; height: 100%\">\r\n    <ul class=\"sidebar\">\r\n        <li class=\"active\"><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-vpn-publ icon\"></span>\r\n            <span class=\"title\">websites</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li class=\"\"><a href=\"#\">\r\n            <span class=\"mif-drive-eta icon\"></span>\r\n            <span class=\"title\">Virtual machines</span>\r\n            <span class=\"counter\">2</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-cloud icon\"></span>\r\n            <span class=\"title\">Cloud services</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-database icon\"></span>\r\n            <span class=\"title\">SQL Databases</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-cogs icon\"></span>\r\n            <span class=\"title\">Automation</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n    </ul>\r\n</div>";
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14293,7 +14448,136 @@
 	    value: true
 	});
 
-	var _table = __webpack_require__(28);
+	var _vue = __webpack_require__(3);
+
+	var _vue2 = _interopRequireDefault(_vue);
+
+	__webpack_require__(29);
+
+	var _modal = __webpack_require__(31);
+
+	var _modal2 = _interopRequireDefault(_modal);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	    template: _modal2.default,
+	    props: {
+	        shown: {
+	            type: Boolean,
+	            required: true,
+	            twoWay: true
+	        },
+	        content: {
+	            type: Function
+	        },
+	        header: {
+	            type: String
+	        },
+	        elems: {
+	            type: Object
+	        },
+	        steps: {
+	            type: Object
+	        }
+	    },
+	    data: function data() {
+	        return {
+	            contener: null
+	        };
+	    },
+	    attached: function attached() {
+	        this.contentElem = this.$els['content'];
+	    },
+
+	    watch: {
+	        'shown': function shown(val, oval) {
+	            var _this = this;
+
+	            if (val === true && !this.$data.stepper) {
+	                _vue2.default.nextTick(function () {
+	                    if (!_this.content) {
+	                        return;
+	                    }
+	                    var _con = _this.content;
+	                    _this.$set('contenter', new _con({ components: _this.steps, data: { steps: _this.steps } }));
+	                    _this.contenter.$mount(_this.contentElem.children[0]);
+	                    _this.$compile(_this.contentElem);
+	                    _this.contenter.$parent = _this;
+	                });
+	            }
+	        }
+	    },
+	    methods: {
+	        close: function close() {
+	            this.$set('shown', false);
+	        }
+	    },
+	    events: {
+	        'step-finished': function stepFinished() {
+	            this.close();
+	            this.$dispatch('data-refresh');
+	        }
+	    }
+	};
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(30);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(10)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../node_modules/css-loader/index.js!./modal.css", function() {
+				var newContent = require("!!./../../../node_modules/css-loader/index.js!./modal.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(9)();
+	// imports
+
+
+	// module
+	exports.push([module.id, ".modal-wrapper {\r\n    width: 50% !important;\r\n    height: 500px !important;\r\n    top: 50% !important;\r\n    margin-top: -250px;\r\n    left: 25% !important;\r\n}\r\n.step {\r\n  height: 270px !important;\r\n  overflow-y: scroll;\r\n}\r\n.step::-webkit-scrollbar {\r\n    width: 6px;\r\n}\r\n \r\n/* Track */\r\n.step::-webkit-scrollbar-track {\r\n    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); \r\n    -webkit-border-radius: 5px;\r\n    border-radius: 5px;\r\n}\r\n \r\n/* Handle */\r\n.step::-webkit-scrollbar-thumb {\r\n    -webkit-border-radius: 10px;\r\n    border-radius: 10px;\r\n    background: rgba(205, 204, 207,0.8); \r\n    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); \r\n}\r\n.step::-webkit-scrollbar-thumb:window-inactive {\r\nbackground: rgba(205, 204, 207,0.4); \r\n}", ""]);
+
+	// exports
+
+
+/***/ },
+/* 31 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"dialog modal-wrapper\" v-show=\"shown\">\r\n<div class=\"panel\" style=\" height: 100%; \">\r\n    <div class=\"heading\">\r\n        <h6 class=\"title\">{{$data.header}}</h6>\r\n    </div>\r\n    <div class=\"content padding10\" v-el:content style=\" height:100%; \">\r\n        <div v-if=\"shown\"></div>\r\n    </div>\r\n</div>\r\n<span class=\"dialog-close-button\" v-on:click.pervent=\"close\"></span></div>\r\n<div class=\"dialog-overlay op-dark\" v-if=\"shown\"></div>";
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _table = __webpack_require__(33);
 
 	var _table2 = _interopRequireDefault(_table);
 
@@ -14301,21 +14585,303 @@
 
 	exports.default = {
 	    template: _table2.default,
-	    props: {
-	        lists: {
-	            type: Object
-	        }
+	    props: ['lists'],
+	    attached: function attached() {
+	        this.table = this.$els.datatable;
+	        this.unwatch = this.$watch('$data.lists', this.check, { deep: true });
 	    },
 	    data: function data() {
 	        return {};
+	    },
+
+	    methods: {
+	        check: function check() {
+	            if (this.lists.length === $(this.table).find('[data-item]').length) {
+	                this.setup();
+	            }
+	        },
+	        setup: function setup() {
+	            $(this.table).DataTable();
+	        }
 	    }
 	};
 
 /***/ },
-/* 28 */
+/* 33 */
 /***/ function(module, exports) {
 
-	module.exports = "<table class=\"dataTable border bordered\" data-role=\"datatable\" data-auto-width=\"false\">\r\n    <thead>\r\n    <tr>\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Machine name</td>\r\n        <td class=\"sortable-column\">Address</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\">\r\n        <td>\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td>{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid}}</a></td>\r\n        <td class=\"align-center\"><span class=\"mif-checkmark fg-green\">{{item.status}}</span></td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>";
+	module.exports = "<table class=\"dataTable border bordered\"  data-auto-width=\"false\" v-el:datatable>\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\" data-item={{$index}}>\r\n        <td>\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td>{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\"><span class=\"mif-checkmark fg-green\">{{item.status}}</span></td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>";
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _vue = __webpack_require__(3);
+
+	var _vue2 = _interopRequireDefault(_vue);
+
+	var _stepper = __webpack_require__(35);
+
+	var _stepper2 = _interopRequireDefault(_stepper);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _vue2.default.extend({
+	    template: _stepper2.default,
+	    replace: false,
+	    data: function data() {
+	        return {
+	            steps: null,
+	            stepkeys: null,
+	            stepitem: [],
+	            stepinited: false
+	        };
+	    },
+	    ready: function ready() {
+	        this.$set('stepkeys', Object.keys(this.steps));
+	    },
+	    attached: function attached() {
+	        this.wrapper = this.$els['wrapper'];
+	        this.content = this.$els.content;
+	        this.$set('stepitem', this.$children);
+	        this.unwatch = this.$watch('stepitem', this.check);
+	    },
+
+	    methods: {
+	        check: function check() {
+	            var _this = this;
+
+	            if (this.stepitem.length === this.stepkeys.length) {
+	                this.$set('stepinited', true);
+	                this.$nextTick(function () {
+	                    return _this.initstep();
+	                });
+	                this.unwatch();
+	            }
+	        },
+	        initstep: function initstep() {
+	            var _this2 = this;
+
+	            $(this.wrapper).wizard({
+	                buttons: { cancel: false, help: false, prior: false },
+	                onNext: function onNext(idx, wid) {
+	                    var _c = _this2.$children[idx - 1];
+	                    var _next = _this2.$children[idx];
+	                    _c.save().then(function (d) {
+	                        if (_c.nextfn && _next) {
+	                            _c.nextfn(_next, d.data);
+	                        }
+	                        wid.data('wizard').next();
+	                    }, function (data) {
+	                        return false;
+	                    });
+	                },
+	                onFinish: function onFinish() {
+	                    _this2.$dispatch('step-finished');
+	                }
+	            });
+	        }
+	    }
+	});
+
+/***/ },
+/* 35 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"wizard\" v-el:wrapper>\r\n    <div class=\"steps\" v-el:content> \r\n        <div class=\"step\" v-for=\"tab in stepkeys\" data-step=\"{{$index}}\">\r\n            <component v-bind:is=\"tab\"></component>\r\n        </div>\r\n        <div class=\"step\" v-if=\"stepinited\">\r\n            <div class=\"notify success\">\r\n                <span class=\"notify-closer\"></span>\r\n                <span class=\"notify-title\">Success</span> \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n";
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _vue = __webpack_require__(3);
+
+	var _vue2 = _interopRequireDefault(_vue);
+
+	var _formproject = __webpack_require__(37);
+
+	var _formproject2 = _interopRequireDefault(_formproject);
+
+	var _projectAction = __webpack_require__(38);
+
+	var _store = __webpack_require__(12);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _vue2.default.component('form-project', {
+	    template: _formproject2.default,
+	    data: function data() {
+	        return {
+	            pname: '',
+	            bugid: '',
+	            palias: ''
+	        };
+	    },
+	    ready: function ready() {},
+
+	    methods: {
+	        save: function save() {
+	            return (0, _projectAction.createproject)({
+	                name: this.pname,
+	                bugzillaid: this.bugid
+	            });
+	        },
+	        nextfn: function nextfn(nextstep, data) {
+	            var _name = _store2.default.getLoginUser().name;
+	            nextstep.$set('pid', data._id.toString());
+	            nextstep.$set('bname', new Date().Format('yyyyMMddhhmmss') + '_' + this.palias + '_' + _name + '_madebytool');
+	        }
+	    }
+	});
+
+/***/ },
+/* 37 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"grid\">\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目名</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"pname\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目号</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bugid\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目别名</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"palias\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>";
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.createbranch = exports.createproject = undefined;
+
+	var _store = __webpack_require__(12);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var createproject = exports.createproject = function createproject(doc, fn) {
+	    if (fn) {
+	        return _store2.default.createProject(doc);
+	    } else {
+	        return _store2.default.createProject(doc).then(fn, fn);
+	    }
+	};
+
+	var createbranch = exports.createbranch = function createbranch(doc, fn) {
+	    if (fn) {
+	        return _store2.default.createBranch(doc);
+	    } else {
+	        return _store2.default.createBranch(doc).then(fn, fn);
+	    }
+	};
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _vue = __webpack_require__(3);
+
+	var _vue2 = _interopRequireDefault(_vue);
+
+	var _formbranch = __webpack_require__(40);
+
+	var _formbranch2 = _interopRequireDefault(_formbranch);
+
+	var _projectAction = __webpack_require__(38);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _vue2.default.component('form-branch', {
+	    template: _formbranch2.default,
+	    data: function data() {
+	        return {
+	            bname: '',
+	            ptype: '',
+	            pid: '',
+	            ptypes: [{ value: '1', text: 'qiyiV2' }, { value: '2', text: 'pingback' }, { value: '3', text: 'lib' }, { value: '4', text: 'qiyistore' }]
+	        };
+	    },
+
+	    methods: {
+	        save: function save() {
+	            return (0, _projectAction.createbranch)({
+	                name: this.bname,
+	                projectids: this.pid,
+	                projectcategory: this.ptype
+	            });
+	        }
+	    }
+	});
+
+/***/ },
+/* 40 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"grid\">\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支名</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bname\">\r\n        </div>\r\n    </div>\r\n</div>\r\n<!--<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支目录</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" >\r\n        </div>\r\n    </div>\r\n</div>-->\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"ptype\">\r\n                <option v-for=\"opt in ptypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div>   \r\n</div>\r\n<input type=\"hidden\" v-model=\"pid\">";
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _root = __webpack_require__(42);
+
+	var _root2 = _interopRequireDefault(_root);
+
+	var _store = __webpack_require__(12);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// root index
+	exports.default = {
+	    template: _root2.default,
+	    data: function data() {
+	        return {
+	            serverconf: {}
+	        };
+	    },
+
+	    methods: {},
+	    ready: function ready() {
+	        var me = this;
+	        _store2.default.getServerConf(function (d) {
+	            if (d.data) {
+	                me.$set('serverconf', d.data);
+	            }
+	        });
+	    }
+	};
+
+/***/ },
+/* 42 */
+/***/ function(module, exports) {
+
+	module.exports = "<div >\r\n<router-view v-bind:serverconf=\"$data.serverconf\"></router-view>\r\n</div>";
 
 /***/ }
 /******/ ]);

@@ -6,7 +6,7 @@ var mongoose = require('mongoose'),
 var schema = new Schema({ 
     bugzillaid:{ type:Number },
     name:{ type:String, required: true, unique: true },
-    desc:{ type:String },
+    //desc:{ type:String },
     status:{ type:Number, default:2},
     launchdate:{ type:Date, default:Date.now },
     endtime:{ type:Date, default:Date.now},

@@ -5,7 +5,11 @@ import { Promise } from 'es6-promise';
 
 const api = new Firebase('https://sweltering-fire-8263.firebaseio.com/app');
 const config = {
-    projects: 'http://localhost:1212/api/get_data'
+    login: 'http://localhost:1212/api/login',
+    new_project: 'http://localhost:1212/api/create_project',
+    new_branch: 'http://localhost:1212/api/create_branch',
+    projects: 'http://localhost:1212/api/get_data',
+    serverconf: 'http://localhost:1212/api/get_serverconf'
 };
 let loginUser = null;
 const store = new EventEmitter();
@@ -24,8 +28,22 @@ store.login = (uname,pwd) => {
     api.child('users/' + uname)
     .once('value', data => {
         if(pwd === data.val()){
-            loginUser = { username:uname, password:pwd };
-            resolve(loginUser);
+            $.ajax({
+                url:config['login'],
+                data:{
+                    name:uname,
+                    password:pwd,
+                    email:uname+'@123.com'
+                },
+                dataType:'jsonp',
+                success:function(d){
+                    loginUser = d.data;
+                    resolve(loginUser);
+                },
+                error: function(err){
+                    reject(err)
+                }
+            });
         }
         else{
             reject('password error');
@@ -46,8 +64,8 @@ store.getProject = function (callback) {
         dataType: 'jsonp',
         success: function(d){
             if(d.code==='A00000'){
-                storeData['projects'] = d.data;
-                return callback(storeData['projects']);
+                //storeData['projects'] = d;
+                return callback(d);
             }
             else{
                 return callback({});
@@ -55,4 +73,56 @@ store.getProject = function (callback) {
         }
      });
 };
-export default store
+store.getServerConf = function(callback){
+     if(storeData['serverconfig']){
+        return callback(storeData['projects']);
+     }
+     $.ajax({
+        url: config.serverconf,
+        dataType: 'jsonp',
+        success: function(d){
+            if(d.code==='A00000'){
+                storeData['serverconfig'] = d;
+                return callback(storeData['serverconfig']);
+            }
+            else{
+                return callback({});
+            }
+        }
+     });
+};
+store.createProject = function(doc, callback){
+    return new Promise((resolve, reject) =>{
+        $.ajax({
+            type: "POST",
+            url: config.new_project,
+            data: doc,
+            success: function(d){
+                if(d.code==='A00000'){
+                    resolve(d);
+                }
+                else{
+                    reject(d);
+                }
+            }
+         });
+     });
+};
+store.createBranch = function(doc, callback){
+    return new Promise((resolve, reject) =>{
+        $.ajax({
+            type: "POST",
+            url: config.new_branch,
+            data: doc,
+            success: function(d){
+                if(d.code==='A00000'){
+                    resolve(d);
+                }
+                else{
+                    reject(d);
+                }
+            }
+         });
+     });
+};
+export default store;

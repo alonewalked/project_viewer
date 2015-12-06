@@ -3,7 +3,8 @@ var mongoTool = require('./utils/mongotool');
 var branchs = require('./apis/branchs'),
     projects = require('./apis/projects'),
     fakeapis = require('./apis/fakeapis'),
-    users = require('./apis/users');
+    users = require('./apis/users'),
+    serverconfig = require('./apis/serverconfig');
 var instance = require('./instance');  
 var start = function(cmd,callback){
     switch(cmd){
@@ -27,6 +28,14 @@ var start = function(cmd,callback){
             callback(data); 
             console.log('before: '+_b+'\r\n after: '+instance.getWorkspaceRoot())
         });
+        break;
+    case 'user_curr_project':   //√
+        var _set_fn = function(d1){
+            if(d1.data){
+                users.setCurrentProject('',d1.data._id.toString(),callback)
+            }
+        };
+        projects.getLastProject().then(_set_fn,callback);
         break;
     case 'pro':  //√
         projects.getByQuery({},{
@@ -66,6 +75,20 @@ var start = function(cmd,callback){
         .fail(function(data) {
             callback(data);
         });
+        break;
+    case 'api_del':   //√ 
+        var _find_fn = function(d1){
+            var ids = [];
+            if(d1.data){
+                d1.data.forEach(function(item){
+                    ids.push(item._id);
+                });
+                return fakeapis.delete(ids);
+            }
+        };
+        fakeapis.suggest('test')
+        .then(_find_fn,callback)
+        .then(callback,callback);
         break;
     case 'user_new':   //√
         users.create({"name":'test1'},function(data){
@@ -131,6 +154,15 @@ var start = function(cmd,callback){
             }
         }); 
         break;
+    case 'pro_upd_state': 
+        var _upd_fn = function(d1){
+            if(d1.data){
+                projects.setProjectStatus(d1.data._id.toString(),5)
+                .then(callback,callback);
+            }
+        };
+        projects.getLastProject().then(_upd_fn,callback); 
+        break;
     case 'branch_new': 
         var _def = branchs.create({"name":"testbranch_"+(Date.now())});
         var _def2 = projects.getLastProject();
@@ -139,7 +171,6 @@ var start = function(cmd,callback){
             if(r1&&r2){
                 _bid = r1.data&&r1.data._id.toString();
                 _pid = r2.data&&r2.data._id.toString();
-                _pid = _pid+','+'565bc5c1e1342bb007de9c3f';
                 branchs.setRelativeProject(_bid,_pid,callback);
             }
         })
@@ -149,14 +180,19 @@ var start = function(cmd,callback){
         break;
     case 'branch_find': // √
         branchs.getByQuery({},{
-            //ref:['projectids']
+            deepref:{'projectids':['apialiasid','ownerid']}
         },
         function(data){
             callback(data);
         });
-        /*branchs.getByUser(null,function(data){
-            callback(data);
-        });*/ 
+        break;
+    case 'branch_deepfind': // √
+        var _get_fn = function(d){
+            if(d.data){
+                branchs.getProjectsByBranch(d.data._id.toString(),['apialiasid','ownerid'],callback);
+            }
+        };
+        branchs.getLastBranch().then(_get_fn,callback);
         break;
     case 'branch_pro': // √
         var _getlast_fn = function(d){
@@ -167,7 +203,30 @@ var start = function(cmd,callback){
             }
         };
         branchs.getLastBranch().then(_getlast_fn,callback); 
-        break; 
+        break;
+    case 'branch_del':
+        var _del_fn = function(d1){
+            if(d1.data){
+                branchs.delete(d1.data._id.toString(),function(data){
+                    callback(data);
+                });
+            }
+            
+        }
+        branchs.getLastBranch().then(_del_fn,callback);
+        break;
+    case 'server_init': // √
+        var conf = instance.getServerConfig();
+        if(conf){
+            return callback({
+                code:'A00000',
+                data:conf
+            })
+        }
+        else{
+            serverconfig.getServerConfig(callback);
+        }
+        break;     
     case 'backup':
         mongoTool.backup();
         break; 

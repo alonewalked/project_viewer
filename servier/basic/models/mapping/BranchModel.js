@@ -8,7 +8,7 @@ var schema = new Schema({
         type: ObjectId,
         ref: 'Project'
     }],
-    name:{ type:String, required: true, unique: true },
+    name:{ type:String, required: true },
     createBy: { type:ObjectId, ref: 'User'},
     createtime: {type:Date, default:Date.now},
     projectcategory:{ type:[Number] },

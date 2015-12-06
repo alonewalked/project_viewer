@@ -8,7 +8,8 @@ var DaoBase = require('./DaoBase'),
         var deferred = $q.defer();
         model
         .findById(id)
-        .populate('created_by ' + popkey)
+        .populate(popkey)
+        .lean()
         .exec(function(error,docs){
             if(error){
                 deferred.reject(errorHandler.handle(error));

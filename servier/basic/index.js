@@ -1,4 +1,6 @@
 var DB = require('./models/index').DB;
+var serverconfig = require('./apis/serverconfig');
+var instance = require('./instance');
 var app = {
     start:function(dbpath,callback){
         if(this.status === 1){
@@ -39,8 +41,13 @@ var app = {
     @param {String} url 数据库连接地址，默认ife; e.g. mongodb://10.1.30.43:27017/tj
 */ 
 
-app.start('',function(data){
-    console.log(JSON.stringify(data)); 
+app.start('mongodb://10.1.30.43:27017/test',function(data){
+    console.log(JSON.stringify(data));
+    serverconfig.getServerConfig(function(data){
+        if(data.code === 'A00000'){
+            instance.setServerconfig(data.data);
+        }
+    })
 });
 
 

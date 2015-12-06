@@ -29,5 +29,40 @@ module.exports = {
         else{
             return finder;
         }
+    },
+    /*
+     * @param {String} multi id concat with ','
+     * @param {Function} callback(data)   
+    */
+    delete: function(id,callback){
+        id = id || '';
+        if(typeof id === 'string'){
+            id = id.split(',');
+        }
+        var finder = testUserDao.delByIds(id);
+        if(callback){
+            return finder.then(callback,callback);
+        }
+        else{
+            return finder;
+        }
+    },
+    /* 修改测试帐号
+     * @param {String} id / {Object} id
+       @param {Object} doc
+     * @param {Function} callback(data) 
+    */
+    update:function(id,doc,callback){
+        doc = doc || {}; 
+        if(typeof id === 'string'){
+            id = {_id:id};
+        }
+        var finder = testUserDao.findAndUpdate(id,doc);
+        if(callback){
+            return finder.then(callback,callback);
+        }
+        else{
+            return finder;
+        }
     }
 }

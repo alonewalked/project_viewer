@@ -6,8 +6,8 @@
             <div class="cell auto-size padding20 bg-white" id="cell-content">
                 <h1 class="text-light">项目列表<span class="mif-drive-eta place-right"></span></h1>
                 <hr class="thin bg-grayLighter">
-                <button class="button primary" onclick="pushMessage('info')"><span class="mif-plus"></span> 新建...</button>
-                <button class="button success" onclick="pushMessage('success')"><span class="mif-play"></span> </button>
+                <button class="button primary" v-on:click.prevent="pushMessage('newProj')"><span class="mif-plus"></span> 新建</button>
+                <button class="button success" onclick="pushMessage('success')"><span class="mif-play">周报</span> </button>
                 <button class="button warning" onclick="pushMessage('warning')"><span class="mif-loop2"></span> </button> 
                 <hr class="thin bg-grayLighter">
                 <data-table v-bind:lists="$data.project"></data-table>
@@ -16,3 +16,7 @@
         </div>
     </div>
 </div>
+<v-modal v-bind:shown.sync="modal.show" v-bind:content="modal.conHtml" v-bind:header="modal.conHeader" 
+v-bind:steps="modal.steps">
+    
+</v-modal>

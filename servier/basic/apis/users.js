@@ -37,7 +37,7 @@ module.exports = {
                 instance.updCurrentUser(d1.data[0]);
             }
             deferred.resolve(d1);
-            return deferred.promise    
+            return deferred.promise;
         };
         var finder = userDao.findAndUpdate(id,doc);
         if(iscurrent){
@@ -122,6 +122,20 @@ module.exports = {
         else{
             return finder;
         }
+    },
+    /* 设置当前项目
+     * @param {string} uid
+     * @param {string} pid
+     * @param {Function} callback(data) 
+    */
+    setCurrentProject: function(uid,pid,callback){
+        if(!uid){
+            uid = {_id:instance.getCurrentUserid()};
+        }
+        else if(typeof iuidd === 'string'){
+            uid = {_id:uid};
+        }
+        return this.update(uid,{currentprojectid:pid},callback) 
     },
     /* 登录
      * @param {string} params {name,password}

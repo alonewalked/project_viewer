@@ -6,7 +6,8 @@ var mongoose = require('mongoose'),
 var schema = new Schema({
     projectcategory:{ type:[String] },
     projectfilter:{ type:[String] },
-    projectsvn:{ type:String}   // json string
+    projectsvn:{ type:String},      // json string
+    projectstatus:{ type:String}    // json string
 });
 
 mongoose.model('ServerConfig', schema);

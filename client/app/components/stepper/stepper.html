@@ -1,0 +1,13 @@
+<div class="wizard" v-el:wrapper>
+    <div class="steps" v-el:content> 
+        <div class="step" v-for="tab in stepkeys" data-step="{{$index}}">
+            <component v-bind:is="tab"></component>
+        </div>
+        <div class="step" v-if="stepinited">
+            <div class="notify success">
+                <span class="notify-closer"></span>
+                <span class="notify-title">Success</span> 
+            </div>
+        </div>
+    </div>
+</div>

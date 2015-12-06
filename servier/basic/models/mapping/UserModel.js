@@ -5,8 +5,9 @@ var mongoose = require('mongoose'),
 
 var schema = new Schema({
     employid:Number,
-    name:{type:String, required: true, unique: true},
+    name:{type:String, required: true},
     email:String,
+    currentprojectid:{ type:ObjectId, ref: 'Project'},
     psetting:{
         "projectfilter" : Number,
         "idepath" : String,
