@@ -1,6 +1,7 @@
 {
 "pem":{
     "path":"pem.txt",
-    "savepath":"code.txt"
+    "savepath":"code.txt",
+    "configpath":"config.json"
 }
 }

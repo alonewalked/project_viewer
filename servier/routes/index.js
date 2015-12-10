@@ -14,4 +14,6 @@ router.get("/api/get_data", service.getData);
 router.get("/api/get_serverconf", service.getServerConf); 
 router.post("/api/create_project", service.createProject);
 router.post("/api/create_branch", service.createBranch);
+router.post("/api/send_weekly", service.sendWeekly);
+
 module.exports = router;

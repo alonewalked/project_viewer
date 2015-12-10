@@ -47,6 +47,10 @@ export default Vue.extend({
                 this.$dispatch('step-finished');
             })
         });
+        this.$dispatch('step-inited',{
+          subcomp:this,
+          sub2comp:this.stepitem
+        });
     }
   }
 });

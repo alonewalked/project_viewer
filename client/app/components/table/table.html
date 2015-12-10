@@ -8,13 +8,14 @@
         <td class="sortable-column" style="width: 100px">ownerby</td>
         <td class="sortable-column" style="width: 20px">Status</td>
         <td style="width: 20px">Switch</td>
+        <td class="sortable-column" style="width: 100px">SVN path</td>
     </tr>
     </thead>
     <tbody>
     <tr v-for="item in lists" data-item={{$index}}>
-        <td>
+        <td data-id="{{item._id}}">
             <label class="input-control checkbox small-check no-margin">
-                <input type="checkbox">
+                <input type="checkbox" v-on:click="onItemClick($event,$index,item)">
                 <span class="check"></span>
             </label>
         </td>
@@ -28,6 +29,8 @@
                 <span class="check"></span>
             </label>
         </td>
+        <td ><a v-if="item.branchid">{{item.branchid.svnpath}}</a>
+            <a v-else href="#" v-on:click.prevent="onNewBranch(item._id)">创建svn</a></td>  
     </tr>
     </tbody>
 </table>

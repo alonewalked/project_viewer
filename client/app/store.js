@@ -9,7 +9,8 @@ const config = {
     new_project: 'http://localhost:1212/api/create_project',
     new_branch: 'http://localhost:1212/api/create_branch',
     projects: 'http://localhost:1212/api/get_data',
-    serverconf: 'http://localhost:1212/api/get_serverconf'
+    serverconf: 'http://localhost:1212/api/get_serverconf',
+    weekly:'http://localhost:1212/api/send_weekly'
 };
 let loginUser = null;
 const store = new EventEmitter();
@@ -125,4 +126,22 @@ store.createBranch = function(doc, callback){
          });
      });
 };
+store.sendWeekly = function(html, callback){
+    return new Promise((resolve, reject) =>{
+        $.ajax({
+            type: "POST",
+            url: config.weekly,
+            data: {content:html},
+            success: function(d){
+                if(d.code==='A00000'){
+                    resolve(d);
+                }
+                else{
+                    reject(d);
+                }
+            }
+         });
+     });
+};
+
 export default store;

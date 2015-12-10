@@ -71,7 +71,7 @@
 
 	var _home2 = _interopRequireDefault(_home);
 
-	var _root = __webpack_require__(41);
+	var _root = __webpack_require__(42);
 
 	var _root2 = _interopRequireDefault(_root);
 
@@ -12486,7 +12486,8 @@
 	    new_project: 'http://localhost:1212/api/create_project',
 	    new_branch: 'http://localhost:1212/api/create_branch',
 	    projects: 'http://localhost:1212/api/get_data',
-	    serverconf: 'http://localhost:1212/api/get_serverconf'
+	    serverconf: 'http://localhost:1212/api/get_serverconf',
+	    weekly: 'http://localhost:1212/api/send_weekly'
 	};
 	var loginUser = null;
 	var store = new _events.EventEmitter();
@@ -12596,6 +12597,23 @@
 	        });
 	    });
 	};
+	store.sendWeekly = function (html, callback) {
+	    return new _es6Promise.Promise(function (resolve, reject) {
+	        $.ajax({
+	            type: "POST",
+	            url: config.weekly,
+	            data: { content: html },
+	            success: function success(d) {
+	                if (d.code === 'A00000') {
+	                    resolve(d);
+	                } else {
+	                    reject(d);
+	                }
+	            }
+	        });
+	    });
+	};
+
 	exports.default = store;
 
 /***/ },
@@ -12959,11 +12977,18 @@
 	        break;
 	      // slower
 	      default:
-	        args = Array.prototype.slice.call(arguments, 1);
+	        len = arguments.length;
+	        args = new Array(len - 1);
+	        for (i = 1; i < len; i++)
+	          args[i - 1] = arguments[i];
 	        handler.apply(this, args);
 	    }
 	  } else if (isObject(handler)) {
-	    args = Array.prototype.slice.call(arguments, 1);
+	    len = arguments.length;
+	    args = new Array(len - 1);
+	    for (i = 1; i < len; i++)
+	      args[i - 1] = arguments[i];
+
 	    listeners = handler.slice();
 	    len = listeners.length;
 	    for (i = 0; i < len; i++)
@@ -13001,6 +13026,7 @@
 
 	  // Check for listener leak
 	  if (isObject(this._events[type]) && !this._events[type].warned) {
+	    var m;
 	    if (!isUndefined(this._maxListeners)) {
 	      m = this._maxListeners;
 	    } else {
@@ -13122,7 +13148,7 @@
 
 	  if (isFunction(listeners)) {
 	    this.removeListener(type, listeners);
-	  } else if (listeners) {
+	  } else {
 	    // LIFO order
 	    while (listeners.length)
 	      this.removeListener(type, listeners[listeners.length - 1]);
@@ -13143,20 +13169,15 @@
 	  return ret;
 	};
 
-	EventEmitter.prototype.listenerCount = function(type) {
-	  if (this._events) {
-	    var evlistener = this._events[type];
-
-	    if (isFunction(evlistener))
-	      return 1;
-	    else if (evlistener)
-	      return evlistener.length;
-	  }
-	  return 0;
-	};
-
 	EventEmitter.listenerCount = function(emitter, type) {
-	  return emitter.listenerCount(type);
+	  var ret;
+	  if (!emitter._events || !emitter._events[type])
+	    ret = 0;
+	  else if (isFunction(emitter._events[type]))
+	    ret = 1;
+	  else
+	    ret = emitter._events[type].length;
+	  return ret;
 	};
 
 	function isFunction(arg) {
@@ -14229,11 +14250,20 @@
 
 	var _store2 = _interopRequireDefault(_store);
 
+	var _utils = __webpack_require__(41);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// home index
 
 	exports.default = {
 	    template: _home2.default,
-	    props: ['serverconf'],
+	    props: {
+	        'serverconf': {
+	            type: Object,
+	            twoWay: true
+	        }
+	    },
 	    components: {
 	        'top-header': _topheader2.default,
 	        'sidebar': _sidebar2.default,
@@ -14252,7 +14282,8 @@
 	                conHtml: null,
 	                conHeader: '',
 	                steps: {
-	                    'form-project': _formproject2.default, 'form-branch': _formbranch2.default
+	                    'form-project': _formproject2.default,
+	                    'form-branch': _formbranch2.default
 	                }
 	            }
 	        };
@@ -14273,19 +14304,97 @@
 	                    this.$set('modal.conHtml', _stepper2.default);
 	                    this.$set('modal.conHeader', '新建项目');
 	                    break;
+	                case 'weekly':
+	                    this.sendWeekly();
+	                    break;
 	            }
+	        },
+	        createBranch: function createBranch(pid) {
+	            var _this = this;
+
+	            this.$set('modal.steps', {
+	                'form-branch': _formbranch2.default
+	            });
+	            this.$set('modal.show', true);
+	            this.$set('modal.conHtml', _stepper2.default);
+	            this.$set('modal.conHeader', '新建项目');
+	            this.$once('step-inited', function (data) {
+	                if (data.sub2comp && data.sub2comp.length) {
+	                    data.sub2comp[0].$set('pid', pid);
+	                    data.sub2comp[0].$set('bname', new Date().Format('yyyyMMddhhmmss') + '_()_' + _this.user.name + '_madebytool');
+	                }
+	            });
+	        },
+	        sendWeekly: function sendWeekly() {
+	            var _this2 = this;
+
+	            var _chd = this.$children.filter(function (item) {
+	                return item instanceof _table2.default;
+	            });
+	            _chd = _chd ? _chd[0] : null;
+	            if (!_chd) {
+	                return;
+	            }
+	            var _items = _chd.$get('checkedItem');
+	            var _html = '';
+	            var _iteratorNormalCompletion = true;
+	            var _didIteratorError = false;
+	            var _iteratorError = undefined;
+
+	            try {
+	                var _loop = function _loop() {
+	                    var key = _step.value;
+
+	                    var _tmp = _items[key];
+	                    var _st = _this2.serverconf['projectstatus'].filter(function (item) {
+	                        return item.id == _tmp.status;
+	                    });
+	                    _st = _st[0] || { id: 2, name: '开发中' };
+	                    var _str = (0, _utils.render)('', _tmp.name.split(' ')[0], _tmp.name, _st.name, _tmp.bugzillaid || '');
+	                    _html += _str;
+	                };
+
+	                for (var _iterator = Object.keys(_items)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                    _loop();
+	                }
+	            } catch (err) {
+	                _didIteratorError = true;
+	                _iteratorError = err;
+	            } finally {
+	                try {
+	                    if (!_iteratorNormalCompletion && _iterator.return) {
+	                        _iterator.return();
+	                    }
+	                } finally {
+	                    if (_didIteratorError) {
+	                        throw _iteratorError;
+	                    }
+	                }
+	            }
+
+	            _store2.default.sendWeekly(_html).then(function (d) {
+	                console.log(d);
+	            }, function (d) {
+	                console.log(d);
+	            });
 	        }
 	    },
 	    events: {
 	        'data-refresh': function dataRefresh() {
-	            var _this = this;
+	            var _this3 = this;
 
 	            _store2.default.getProject(function (d) {
-	                return _this.$set('project', d.data);
+	                return _this3.$set('project', d.data);
 	            });
+	        },
+	        'on-new-branch': function onNewBranch(data) {
+	            data = data || {};
+	            if (data.id) {
+	                this.createBranch(data.id);
+	            }
 	        }
 	    }
-	}; // home index
+	};
 
 /***/ },
 /* 20 */
@@ -14331,7 +14440,7 @@
 /* 22 */
 /***/ function(module, exports) {
 
-	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" onclick=\"pushMessage('success')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\"></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
+	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\" ></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
 
 /***/ },
 /* 23 */
@@ -14581,9 +14690,13 @@
 
 	var _table2 = _interopRequireDefault(_table);
 
+	var _vue = __webpack_require__(3);
+
+	var _vue2 = _interopRequireDefault(_vue);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	exports.default = {
+	exports.default = _vue2.default.component('data-table', {
 	    template: _table2.default,
 	    props: ['lists'],
 	    attached: function attached() {
@@ -14591,7 +14704,9 @@
 	        this.unwatch = this.$watch('$data.lists', this.check, { deep: true });
 	    },
 	    data: function data() {
-	        return {};
+	        return {
+	            checkedItem: {}
+	        };
 	    },
 
 	    methods: {
@@ -14602,15 +14717,29 @@
 	        },
 	        setup: function setup() {
 	            $(this.table).DataTable();
+	        },
+	        onNewBranch: function onNewBranch(id) {
+	            this.$dispatch('on-new-branch', {
+	                subcomp: this,
+	                id: id.toString()
+	            });
+	        },
+	        onItemClick: function onItemClick(ev, idx, obj) {
+	            var target = ev.currentTarget;
+	            if (target.checked) {
+	                this.checkedItem[idx] = obj;
+	            } else {
+	                delete this.checkedItem[idx];
+	            }
 	        }
 	    }
-	};
+	});
 
 /***/ },
 /* 33 */
 /***/ function(module, exports) {
 
-	module.exports = "<table class=\"dataTable border bordered\"  data-auto-width=\"false\" v-el:datatable>\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\" data-item={{$index}}>\r\n        <td>\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td>{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\"><span class=\"mif-checkmark fg-green\">{{item.status}}</span></td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>";
+	module.exports = "<table class=\"dataTable border bordered\"  data-auto-width=\"false\" v-el:datatable>\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">SVN path</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\" data-item={{$index}}>\r\n        <td data-id=\"{{item._id}}\">\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td>{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\"><span class=\"mif-checkmark fg-green\">{{item.status}}</span></td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\r\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \r\n    </tr>\r\n    </tbody>\r\n</table>";
 
 /***/ },
 /* 34 */
@@ -14685,6 +14814,10 @@
 	                onFinish: function onFinish() {
 	                    _this2.$dispatch('step-finished');
 	                }
+	            });
+	            this.$dispatch('step-inited', {
+	                subcomp: this,
+	                sub2comp: this.stepitem
 	            });
 	        }
 	    }
@@ -14815,8 +14948,10 @@
 	        return {
 	            bname: '',
 	            ptype: '',
+	            atype: '',
 	            pid: '',
-	            ptypes: [{ value: '1', text: 'qiyiV2' }, { value: '2', text: 'pingback' }, { value: '3', text: 'lib' }, { value: '4', text: 'qiyistore' }]
+	            ptypes: [{ value: '1', text: 'qiyiV2' }, { value: '2', text: 'pingback' }, { value: '3', text: 'lib' }, { value: '4', text: 'qiyistore' }],
+	            atypes: [{ value: '1', text: '创建svn' }, { value: '2', text: '不下载代码' }, { value: '3', text: '只下载代码' }]
 	        };
 	    },
 
@@ -14825,7 +14960,8 @@
 	            return (0, _projectAction.createbranch)({
 	                name: this.bname,
 	                projectids: this.pid,
-	                projectcategory: this.ptype
+	                projectcategory: this.ptype,
+	                type: this.atype
 	            });
 	        }
 	    }
@@ -14835,10 +14971,26 @@
 /* 40 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"grid\">\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支名</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bname\">\r\n        </div>\r\n    </div>\r\n</div>\r\n<!--<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支目录</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" >\r\n        </div>\r\n    </div>\r\n</div>-->\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"ptype\">\r\n                <option v-for=\"opt in ptypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div>   \r\n</div>\r\n<input type=\"hidden\" v-model=\"pid\">";
+	module.exports = "<div class=\"grid\">\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支名</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bname\">\r\n        </div>\r\n    </div>\r\n</div>\r\n<!--<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支目录</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" >\r\n        </div>\r\n    </div>\r\n</div>-->\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"ptype\">\r\n                <option v-for=\"opt in ptypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div>   \r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"atype\">\r\n                <option v-for=\"opt in atypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div> \r\n</div>\r\n<input type=\"hidden\" v-model=\"pid\">";
 
 /***/ },
 /* 41 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.render = render;
+	function render(rawstr) {
+	    var str = "\n    \r\n" + arguments[1] + "\n\t\n    " + arguments[2] + " (" + arguments[4] + ") 【" + arguments[3] + "】\n    ";
+
+	    return str;
+	}
+
+/***/ },
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14847,7 +14999,7 @@
 	    value: true
 	});
 
-	var _root = __webpack_require__(42);
+	var _root = __webpack_require__(43);
 
 	var _root2 = _interopRequireDefault(_root);
 
@@ -14878,10 +15030,10 @@
 	};
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports) {
 
-	module.exports = "<div >\r\n<router-view v-bind:serverconf=\"$data.serverconf\"></router-view>\r\n</div>";
+	module.exports = "<div >\r\n<router-view v-bind:serverconf.sync=\"serverconf\"></router-view>\r\n</div>";
 
 /***/ }
 /******/ ]);

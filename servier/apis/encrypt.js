@@ -13,14 +13,16 @@ module.exports = {
         fs.writeFileSync(savepath,crypted);
         return true;
     },
-    decipher: function(pwd,pempath,cryptpath){
-        var key = this.initkey(pempath);
-        console.log(key);
+    decipher: function(pwd,pempath,cryptpath,jsonpath){
+        var key = this.initkey(pempath); 
         var decipher = crypto.createDecipher(key,pwd);
         var crypted = fs.readFileSync(cryptpath,'utf8');
         var dec = decipher.update(crypted,'hex','utf8');
         dec += decipher.final('utf8');
-        console.log(dec);
+        console.log(jsonpath)
+        if(!fs.existsSync(jsonpath)){
+            fs.writeFileSync(jsonpath,dec);
+        }
         return dec;
     }
 };

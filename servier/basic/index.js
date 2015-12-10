@@ -62,3 +62,5 @@ exports['testUser'] = require('./apis/testUser');
 // utils
 require('./utils/date');
 exports['svn'] = require('./utils/svn');
+exports['ppt'] = require('./utils/ppt');
+exports['email'] = require('./utils/email');
