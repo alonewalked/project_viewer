@@ -48,12 +48,18 @@ export default {
             }
 
     },
-    ready() {
+    created() {
         let me = this;
         this.$set('user',store.getLoginUser());
         store.getProject(d => me.$set('project',d.data)); 
     },
     methods: {
+        getTableChild() {
+            var _chd = this.$children.filter(function(item){
+                return (item instanceof table) 
+            });
+            return _chd?_chd[0]:null;
+        },
         pushMessage(cmd) {
             switch(cmd){
             case 'newProj':
@@ -81,10 +87,7 @@ export default {
             });
         },
         sendWeekly(){
-            var _chd = this.$children.filter(function(item){
-                return (item instanceof table) 
-            });
-            _chd = _chd?_chd[0]:null;
+            let _chd = this.getTableChild();
             if(!_chd){
                 return;
             }
@@ -117,6 +120,26 @@ export default {
             if(data.id){
                 this.createBranch(data.id );
             } 
+        },
+        'on-upd-project'(e){
+            e = e || {};
+            let _id = e.data._id.toString();
+            let _doc = {
+                    "bugzillaid":e.data.bugzillaid,
+                    "status":e.data.status,
+                    "name":e.data.name
+                };
+            store.updateProject({
+                "id":_id,
+                "doc":JSON.stringify(_doc)
+            }).then( d1=> {
+                // upd success
+                let _chd = this.getTableChild();
+                _chd.$set('edittingitem',null);
+                _chd.$set('updating',false); 
+            },err=>{
+                console.log(err)
+            });
         }
     }
 }

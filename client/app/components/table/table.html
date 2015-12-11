@@ -1,4 +1,4 @@
-<table class="dataTable border bordered"  data-auto-width="false" v-el:datatable>
+<table class="dataTable border bordered"  data-auto-width="false" v-el:datatable >
     <thead>
     <tr >
         <td style="width: 20px">
@@ -19,10 +19,17 @@
                 <span class="check"></span>
             </label>
         </td>
-        <td>{{item.bugzillaid}}</td>
+        <td >{{item.bugzillaid}}</td>
         <td>{{item.name}}</td>
         <td><a >{{item.ownerid.name}}</a></td>
-        <td class="align-center"><span class="mif-checkmark fg-green">{{item.status}}</span></td>
+        <td class="align-center" >
+            <span class="mif-checkmark fg-green" @dblclick="editCell($index,item,'status')" v-text="stateRender(item)"></span>
+            <div class="input-control select" v-if="edittingitem == item">
+            <select class="" v-model="item.status">
+                <option v-for="opt in statuslist" v-bind:value="opt.id">{{opt.name}}</option>
+            </select>
+            </div>
+        </td>
         <td>
             <label class="switch-original">
                 <input type="checkbox" checked>

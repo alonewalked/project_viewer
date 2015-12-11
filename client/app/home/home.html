@@ -10,7 +10,7 @@
                 <button class="button success" v-on:click="pushMessage('weekly')"><span class="mif-play">周报</span> </button>
                 <button class="button warning" onclick="pushMessage('warning')"><span class="mif-loop2"></span> </button> 
                 <hr class="thin bg-grayLighter">
-                <data-table v-bind:lists="$data.project" ></data-table>
+                <data-table v-bind:lists="$data.project" v-bind:serverconf="serverconf"></data-table>
                 
             </div>
         </div>

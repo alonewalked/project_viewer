@@ -12485,6 +12485,7 @@
 	    login: 'http://localhost:1212/api/login',
 	    new_project: 'http://localhost:1212/api/create_project',
 	    new_branch: 'http://localhost:1212/api/create_branch',
+	    upd_project: 'http://localhost:1212/api/upd_project',
 	    projects: 'http://localhost:1212/api/get_data',
 	    serverconf: 'http://localhost:1212/api/get_serverconf',
 	    weekly: 'http://localhost:1212/api/send_weekly'
@@ -12571,6 +12572,22 @@
 	            type: "POST",
 	            url: config.new_project,
 	            data: doc,
+	            success: function success(d) {
+	                if (d.code === 'A00000') {
+	                    resolve(d);
+	                } else {
+	                    reject(d);
+	                }
+	            }
+	        });
+	    });
+	};
+	store.updateProject = function (params, callback) {
+	    return new _es6Promise.Promise(function (resolve, reject) {
+	        $.ajax({
+	            type: "POST",
+	            url: config.upd_project,
+	            data: params,
 	            success: function success(d) {
 	                if (d.code === 'A00000') {
 	                    resolve(d);
@@ -14288,7 +14305,7 @@
 	            }
 	        };
 	    },
-	    ready: function ready() {
+	    created: function created() {
 	        var me = this;
 	        this.$set('user', _store2.default.getLoginUser());
 	        _store2.default.getProject(function (d) {
@@ -14297,6 +14314,12 @@
 	    },
 
 	    methods: {
+	        getTableChild: function getTableChild() {
+	            var _chd = this.$children.filter(function (item) {
+	                return item instanceof _table2.default;
+	            });
+	            return _chd ? _chd[0] : null;
+	        },
 	        pushMessage: function pushMessage(cmd) {
 	            switch (cmd) {
 	                case 'newProj':
@@ -14328,10 +14351,7 @@
 	        sendWeekly: function sendWeekly() {
 	            var _this2 = this;
 
-	            var _chd = this.$children.filter(function (item) {
-	                return item instanceof _table2.default;
-	            });
-	            _chd = _chd ? _chd[0] : null;
+	            var _chd = this.getTableChild();
 	            if (!_chd) {
 	                return;
 	            }
@@ -14392,6 +14412,28 @@
 	            if (data.id) {
 	                this.createBranch(data.id);
 	            }
+	        },
+	        'on-upd-project': function onUpdProject(e) {
+	            var _this4 = this;
+
+	            e = e || {};
+	            var _id = e.data._id.toString();
+	            var _doc = {
+	                "bugzillaid": e.data.bugzillaid,
+	                "status": e.data.status,
+	                "name": e.data.name
+	            };
+	            _store2.default.updateProject({
+	                "id": _id,
+	                "doc": JSON.stringify(_doc)
+	            }).then(function (d1) {
+	                // upd success
+	                var _chd = _this4.getTableChild();
+	                _chd.$set('edittingitem', null);
+	                _chd.$set('updating', false);
+	            }, function (err) {
+	                console.log(err);
+	            });
 	        }
 	    }
 	};
@@ -14440,7 +14482,7 @@
 /* 22 */
 /***/ function(module, exports) {
 
-	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\" ></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
+	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\" v-bind:serverconf=\"serverconf\"></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
 
 /***/ },
 /* 23 */
@@ -14698,14 +14740,20 @@
 
 	exports.default = _vue2.default.component('data-table', {
 	    template: _table2.default,
-	    props: ['lists'],
+	    props: ['lists', 'serverconf'],
+	    created: function created() {
+	        this.$set('statuslist', this.serverconf['projectstatus']);
+	    },
 	    attached: function attached() {
 	        this.table = this.$els.datatable;
 	        this.unwatch = this.$watch('$data.lists', this.check, { deep: true });
 	    },
 	    data: function data() {
 	        return {
-	            checkedItem: {}
+	            checkedItem: {},
+	            updating: false,
+	            statuslist: null,
+	            edittingitem: null
 	        };
 	    },
 
@@ -14731,6 +14779,33 @@
 	            } else {
 	                delete this.checkedItem[idx];
 	            }
+	        },
+	        editCell: function editCell(idx, obj, cellname) {
+	            this.$set('edittingitem', obj);
+	            $('body').on('keydown', this.saveEdit);
+	        },
+	        saveEdit: function saveEdit(ev) {
+	            if (!window.event.ctrlKey || !ev.keyCode == 83) {
+	                return;
+	            }
+	            if (!this.edittingitem) {
+	                return;
+	            }
+	            ev.preventDefault();
+	            if (!this.updating) {
+	                this.$dispatch('on-upd-project', {
+	                    target: this,
+	                    data: this.edittingitem
+	                });
+	            }
+	            this.$set('updating', true);
+	        },
+
+	        stateRender: function stateRender(node) {
+	            var _atrr = this.statuslist.filter(function (item) {
+	                return item.id === node.status;
+	            });
+	            return _atrr[0]['name'] || '';
 	        }
 	    }
 	});
@@ -14739,7 +14814,7 @@
 /* 33 */
 /***/ function(module, exports) {
 
-	module.exports = "<table class=\"dataTable border bordered\"  data-auto-width=\"false\" v-el:datatable>\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">SVN path</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\" data-item={{$index}}>\r\n        <td data-id=\"{{item._id}}\">\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td>{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\"><span class=\"mif-checkmark fg-green\">{{item.status}}</span></td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\r\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \r\n    </tr>\r\n    </tbody>\r\n</table>";
+	module.exports = "<table class=\"dataTable border bordered\"  data-auto-width=\"false\" v-el:datatable >\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">SVN path</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\" data-item={{$index}}>\r\n        <td data-id=\"{{item._id}}\">\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td >{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\" >\r\n            <span class=\"mif-checkmark fg-green\" @dblclick=\"editCell($index,item,'status')\" v-text=\"stateRender(item)\"></span>\r\n            <div class=\"input-control select\" v-if=\"edittingitem == item\">\r\n            <select class=\"\" v-model=\"item.status\">\r\n                <option v-for=\"opt in statuslist\" v-bind:value=\"opt.id\">{{opt.name}}</option>\r\n            </select>\r\n            </div>\r\n        </td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\r\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \r\n    </tr>\r\n    </tbody>\r\n</table>";
 
 /***/ },
 /* 34 */

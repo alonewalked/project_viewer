@@ -19,10 +19,10 @@ module.exports = {
         var crypted = fs.readFileSync(cryptpath,'utf8');
         var dec = decipher.update(crypted,'hex','utf8');
         dec += decipher.final('utf8');
-        console.log(jsonpath)
-        if(!fs.existsSync(jsonpath)){
+         
+        /*if(!fs.existsSync(jsonpath)){
             fs.writeFileSync(jsonpath,dec);
-        }
+        }*/
         return dec;
     }
 };

@@ -3,7 +3,7 @@ var url = require('url');
 var path = require('path');
 var basic = require('../basic/index');
 var instance = require('../basic/instance');
-var config = /*require('./config.json')*/,sconf,pconf,wconf;
+var config /*= require('./config.json')*/,sconf,pconf,wconf;
 var pemconfig = require('./pemconfig.json').pem;
 var ekit = require('./encrypt');
 
@@ -39,7 +39,7 @@ Service.prototype = {
     },
     //////////////create//////////////
     createProject:function(doc,fn){
-        basic.projects.create(doc,fn);
+        basic.projects.create(doc).then(fn,fn);
     },
     createBranch:function(doc,type,fn){
         type = type || 1;   
@@ -101,6 +101,10 @@ Service.prototype = {
         }
         handler.then(fn,fn);  
     },
+    //////////////update///////////
+    updProject:function(id,doc,fn){
+        basic.projects.update(id,doc).then(fn,fn);
+    },
     //////////////get//////////////
 	getData:function(fn){ 
         basic.projects.getByQuery({},{
@@ -142,6 +146,22 @@ module.exports = {
             console.log(data)
             return res.send(data);  
 		});
+    },
+    updProject: function(req, res){  // post
+        var params = req.body || {};
+        var id = params.id || '',
+        doc = params.doc || '';
+        doc = JSON.parse(doc);
+        if(!id){
+            return res.send({
+                code:'C00002',
+                message:'id empty'
+            }); 
+        }
+        _server.updProject(id, doc,function(data){
+            console.log(data)
+            return res.send(data);  
+        });
     },
     createBranch: function(req, res){  // post
         var params = req.body || {}; 
