@@ -1,8 +1,13 @@
 import tpl from './table.html';
 import Vue from 'vue'; 
+import ContextMenu from '../contextmenu';
+
 export default Vue.component('data-table', { 
     template: tpl,
     props:['lists','serverconf'],
+    components :[{
+        "context-menu": ContextMenu
+    }],
     created(){
         this.$set('statuslist',this.serverconf['projectstatus']);
     },
@@ -15,7 +20,9 @@ export default Vue.component('data-table', {
             checkedItem:{},
             updating:false,
             statuslist:null,
-            edittingitem:null
+            edittingitem:null,
+            selectIndex:-1,
+            contextshow: false
         };
     },
     methods: {
@@ -63,11 +70,18 @@ export default Vue.component('data-table', {
             }
             this.$set('updating',true);
         },
-        stateRender: function (node) { 
+        stateRender(node) { 
             let _atrr = this.statuslist.filter((item)=>{
                 return item.id === node.status
             });
             return _atrr[0]['name'] || '';
+        },
+        selectRow(idx) {
+            this.$set('selectIndex',idx);
+        },        
+        openMenu(e) { 
+            e.preventDefault();
+            this.$broadcast('show-menu',{x:e.x,y:e.y});
         }
     }
 });

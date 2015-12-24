@@ -8,9 +8,9 @@
                 <hr class="thin bg-grayLighter">
                 <button class="button primary" v-on:click.prevent="pushMessage('newProj')"><span class="mif-plus"></span> 新建</button>
                 <button class="button success" v-on:click="pushMessage('weekly')"><span class="mif-play">周报</span> </button>
-                <button class="button warning" onclick="pushMessage('warning')"><span class="mif-loop2"></span> </button> 
+                <button class="button warning" v-on:click="pushMessage('refresh')"><span class="mif-loop2"></span> </button> 
                 <hr class="thin bg-grayLighter">
-                <data-table v-bind:lists="$data.project" v-bind:serverconf="serverconf"></data-table>
+                <data-table v-bind:lists="$data.project" v-bind:serverconf="serverconf" v-ref:datatable></data-table>
                 
             </div>
         </div>

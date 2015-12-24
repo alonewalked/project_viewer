@@ -51,14 +51,18 @@ export default {
     created() {
         let me = this;
         this.$set('user',store.getLoginUser());
-        store.getProject(d => me.$set('project',d.data)); 
+        this.refreshData(); 
     },
     methods: {
         getTableChild() {
-            var _chd = this.$children.filter(function(item){
+            /*var _chd = this.$children.filter(function(item){
                 return (item instanceof table) 
             });
-            return _chd?_chd[0]:null;
+            return _chd?_chd[0]:null;*/  
+            return this.$refs.datatable;
+        },
+        refreshData() {
+            store.getProject(d => this.$set('project',d.data));
         },
         pushMessage(cmd) {
             switch(cmd){
@@ -70,6 +74,8 @@ export default {
             case 'weekly':
                 this.sendWeekly();
                 break;
+            case 'refresh':
+                this.refreshData();
             }
         },
         createBranch(pid){

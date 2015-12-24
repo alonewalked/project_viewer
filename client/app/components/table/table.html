@@ -1,4 +1,4 @@
-<table class="dataTable border bordered"  data-auto-width="false" v-el:datatable >
+<table class="dataTable border bordered" data-auto-width="false" v-el:datatable >
     <thead>
     <tr >
         <td style="width: 20px">
@@ -11,16 +11,16 @@
         <td class="sortable-column" style="width: 100px">SVN path</td>
     </tr>
     </thead>
-    <tbody>
-    <tr v-for="item in lists" data-item={{$index}}>
+    <tbody v-on:contextmenu="openMenu($event)">
+    <tr v-for="item in lists" data-item={{$index}}  v-bind:class.sync="{ 'selected': selectIndex==$index}" >
         <td data-id="{{item._id}}">
             <label class="input-control checkbox small-check no-margin">
                 <input type="checkbox" v-on:click="onItemClick($event,$index,item)">
                 <span class="check"></span>
             </label>
         </td>
-        <td >{{item.bugzillaid}}</td>
-        <td>{{item.name}}</td>
+        <td ><a href="http://bugzilla.qiyi.domain/show_bug.cgi?id={{item.bugzillaid}}" target="_blank">{{item.bugzillaid}}</a></td>
+        <td v-on:click="selectRow($index)">{{item.name}}</td>
         <td><a >{{item.ownerid.name}}</a></td>
         <td class="align-center" >
             <span class="mif-checkmark fg-green" @dblclick="editCell($index,item,'status')" v-text="stateRender(item)"></span>
@@ -41,3 +41,6 @@
     </tr>
     </tbody>
 </table>
+<context-menu v-bind:viewMenu.sync="contextshow"></context-menu>
+
+

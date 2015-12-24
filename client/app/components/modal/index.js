@@ -52,6 +52,7 @@ export default {
     methods: {
         close() {
             this.$set('shown',false); 
+            this.$dispatch('data-refresh');
         }
     },
     events: {

@@ -71,7 +71,7 @@
 
 	var _home2 = _interopRequireDefault(_home);
 
-	var _root = __webpack_require__(42);
+	var _root = __webpack_require__(44);
 
 	var _root2 = _interopRequireDefault(_root);
 
@@ -14251,15 +14251,15 @@
 
 	var _table2 = _interopRequireDefault(_table);
 
-	var _stepper = __webpack_require__(34);
+	var _stepper = __webpack_require__(36);
 
 	var _stepper2 = _interopRequireDefault(_stepper);
 
-	var _formproject = __webpack_require__(36);
+	var _formproject = __webpack_require__(38);
 
 	var _formproject2 = _interopRequireDefault(_formproject);
 
-	var _formbranch = __webpack_require__(39);
+	var _formbranch = __webpack_require__(41);
 
 	var _formbranch2 = _interopRequireDefault(_formbranch);
 
@@ -14267,7 +14267,7 @@
 
 	var _store2 = _interopRequireDefault(_store);
 
-	var _utils = __webpack_require__(41);
+	var _utils = __webpack_require__(43);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -14308,17 +14308,23 @@
 	    created: function created() {
 	        var me = this;
 	        this.$set('user', _store2.default.getLoginUser());
-	        _store2.default.getProject(function (d) {
-	            return me.$set('project', d.data);
-	        });
+	        this.refreshData();
 	    },
 
 	    methods: {
 	        getTableChild: function getTableChild() {
-	            var _chd = this.$children.filter(function (item) {
-	                return item instanceof _table2.default;
+	            /*var _chd = this.$children.filter(function(item){
+	                return (item instanceof table) 
 	            });
-	            return _chd ? _chd[0] : null;
+	            return _chd?_chd[0]:null;*/
+	            return this.$refs.datatable;
+	        },
+	        refreshData: function refreshData() {
+	            var _this = this;
+
+	            _store2.default.getProject(function (d) {
+	                return _this.$set('project', d.data);
+	            });
 	        },
 	        pushMessage: function pushMessage(cmd) {
 	            switch (cmd) {
@@ -14330,10 +14336,12 @@
 	                case 'weekly':
 	                    this.sendWeekly();
 	                    break;
+	                case 'refresh':
+	                    this.refreshData();
 	            }
 	        },
 	        createBranch: function createBranch(pid) {
-	            var _this = this;
+	            var _this2 = this;
 
 	            this.$set('modal.steps', {
 	                'form-branch': _formbranch2.default
@@ -14344,12 +14352,12 @@
 	            this.$once('step-inited', function (data) {
 	                if (data.sub2comp && data.sub2comp.length) {
 	                    data.sub2comp[0].$set('pid', pid);
-	                    data.sub2comp[0].$set('bname', new Date().Format('yyyyMMddhhmmss') + '_()_' + _this.user.name + '_madebytool');
+	                    data.sub2comp[0].$set('bname', new Date().Format('yyyyMMddhhmmss') + '_()_' + _this2.user.name + '_madebytool');
 	                }
 	            });
 	        },
 	        sendWeekly: function sendWeekly() {
-	            var _this2 = this;
+	            var _this3 = this;
 
 	            var _chd = this.getTableChild();
 	            if (!_chd) {
@@ -14366,7 +14374,7 @@
 	                    var key = _step.value;
 
 	                    var _tmp = _items[key];
-	                    var _st = _this2.serverconf['projectstatus'].filter(function (item) {
+	                    var _st = _this3.serverconf['projectstatus'].filter(function (item) {
 	                        return item.id == _tmp.status;
 	                    });
 	                    _st = _st[0] || { id: 2, name: '开发中' };
@@ -14401,10 +14409,10 @@
 	    },
 	    events: {
 	        'data-refresh': function dataRefresh() {
-	            var _this3 = this;
+	            var _this4 = this;
 
 	            _store2.default.getProject(function (d) {
-	                return _this3.$set('project', d.data);
+	                return _this4.$set('project', d.data);
 	            });
 	        },
 	        'on-new-branch': function onNewBranch(data) {
@@ -14414,7 +14422,7 @@
 	            }
 	        },
 	        'on-upd-project': function onUpdProject(e) {
-	            var _this4 = this;
+	            var _this5 = this;
 
 	            e = e || {};
 	            var _id = e.data._id.toString();
@@ -14428,7 +14436,7 @@
 	                "doc": JSON.stringify(_doc)
 	            }).then(function (d1) {
 	                // upd success
-	                var _chd = _this4.getTableChild();
+	                var _chd = _this5.getTableChild();
 	                _chd.$set('edittingitem', null);
 	                _chd.$set('updating', false);
 	            }, function (err) {
@@ -14482,7 +14490,7 @@
 /* 22 */
 /***/ function(module, exports) {
 
-	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" onclick=\"pushMessage('warning')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\" v-bind:serverconf=\"serverconf\"></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
+	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" v-on:click=\"pushMessage('refresh')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\" v-bind:serverconf=\"serverconf\" v-ref:datatable></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
 
 /***/ },
 /* 23 */
@@ -14587,7 +14595,7 @@
 /* 27 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"cell size-x200\" id=\"cell-sidebar\" style=\"background-color: #71b1d1; height: 100%\">\r\n    <ul class=\"sidebar\">\r\n        <li class=\"active\"><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-vpn-publ icon\"></span>\r\n            <span class=\"title\">websites</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li class=\"\"><a href=\"#\">\r\n            <span class=\"mif-drive-eta icon\"></span>\r\n            <span class=\"title\">Virtual machines</span>\r\n            <span class=\"counter\">2</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-cloud icon\"></span>\r\n            <span class=\"title\">Cloud services</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-database icon\"></span>\r\n            <span class=\"title\">SQL Databases</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-cogs icon\"></span>\r\n            <span class=\"title\">Automation</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n    </ul>\r\n</div>";
+	module.exports = "<div class=\"cell size-x200\" id=\"cell-sidebar\" style=\"background-color: #71b1d1; height: 100%\">\r\n    <ul class=\"sidebar\">\r\n        <li class=\"active\"><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-vpn-publ icon\"></span>\r\n            <span class=\"title\">Project</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li class=\"\"><a href=\"#\">\r\n            <span class=\"mif-drive-eta icon\"></span>\r\n            <span class=\"title\">Branch</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-cloud icon\"></span>\r\n            <span class=\"title\">Apis</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-database icon\"></span>\r\n            <span class=\"title\">Tester</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li> \r\n        <li><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n    </ul>\r\n</div>";
 
 /***/ },
 /* 28 */
@@ -14662,6 +14670,7 @@
 	    methods: {
 	        close: function close() {
 	            this.$set('shown', false);
+	            this.$dispatch('data-refresh');
 	        }
 	    },
 	    events: {
@@ -14736,11 +14745,18 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
+	var _contextmenu = __webpack_require__(34);
+
+	var _contextmenu2 = _interopRequireDefault(_contextmenu);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	exports.default = _vue2.default.component('data-table', {
 	    template: _table2.default,
 	    props: ['lists', 'serverconf'],
+	    components: [{
+	        "context-menu": _contextmenu2.default
+	    }],
 	    created: function created() {
 	        this.$set('statuslist', this.serverconf['projectstatus']);
 	    },
@@ -14753,7 +14769,9 @@
 	            checkedItem: {},
 	            updating: false,
 	            statuslist: null,
-	            edittingitem: null
+	            edittingitem: null,
+	            selectIndex: -1,
+	            contextshow: false
 	        };
 	    },
 
@@ -14800,12 +14818,18 @@
 	            }
 	            this.$set('updating', true);
 	        },
-
 	        stateRender: function stateRender(node) {
 	            var _atrr = this.statuslist.filter(function (item) {
 	                return item.id === node.status;
 	            });
 	            return _atrr[0]['name'] || '';
+	        },
+	        selectRow: function selectRow(idx) {
+	            this.$set('selectIndex', idx);
+	        },
+	        openMenu: function openMenu(e) {
+	            e.preventDefault();
+	            this.$broadcast('show-menu', { x: e.x, y: e.y });
 	        }
 	    }
 	});
@@ -14814,10 +14838,97 @@
 /* 33 */
 /***/ function(module, exports) {
 
-	module.exports = "<table class=\"dataTable border bordered\"  data-auto-width=\"false\" v-el:datatable >\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">SVN path</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr v-for=\"item in lists\" data-item={{$index}}>\r\n        <td data-id=\"{{item._id}}\">\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td >{{item.bugzillaid}}</td>\r\n        <td>{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\" >\r\n            <span class=\"mif-checkmark fg-green\" @dblclick=\"editCell($index,item,'status')\" v-text=\"stateRender(item)\"></span>\r\n            <div class=\"input-control select\" v-if=\"edittingitem == item\">\r\n            <select class=\"\" v-model=\"item.status\">\r\n                <option v-for=\"opt in statuslist\" v-bind:value=\"opt.id\">{{opt.name}}</option>\r\n            </select>\r\n            </div>\r\n        </td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\r\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \r\n    </tr>\r\n    </tbody>\r\n</table>";
+	module.exports = "<table class=\"dataTable border bordered\" data-auto-width=\"false\" v-el:datatable >\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">SVN path</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody v-on:contextmenu=\"openMenu($event)\">\r\n    <tr v-for=\"item in lists\" data-item={{$index}}  v-bind:class.sync=\"{ 'selected': selectIndex==$index}\" v-on:click=\"selectRow($index)\">\r\n        <td data-id=\"{{item._id}}\">\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a href=\"http://bugzilla.qiyi.domain/show_bug.cgi?id={{item.bugzillaid}}\" target=\"_blank\">{{item.bugzillaid}}</a></td>\r\n        <td >{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\" >\r\n            <span class=\"mif-checkmark fg-green\" @dblclick=\"editCell($index,item,'status')\" v-text=\"stateRender(item)\"></span>\r\n            <div class=\"input-control select\" v-if=\"edittingitem == item\">\r\n            <select class=\"\" v-model=\"item.status\">\r\n                <option v-for=\"opt in statuslist\" v-bind:value=\"opt.id\">{{opt.name}}</option>\r\n            </select>\r\n            </div>\r\n        </td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\r\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \r\n    </tr>\r\n    </tbody>\r\n</table>\r\n<context-menu v-bind:viewMenu.sync=\"contextshow\"></context-menu>\r\n\r\n\r\n";
 
 /***/ },
 /* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _contextmenu = __webpack_require__(35);
+
+	var _contextmenu2 = _interopRequireDefault(_contextmenu);
+
+	var _vue = __webpack_require__(3);
+
+	var _vue2 = _interopRequireDefault(_vue);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _vue2.default.component('context-menu', {
+	    template: _contextmenu2.default,
+	    props: {
+	        "viewMenu": {
+	            type: Boolean,
+	            twoWay: true,
+	            required: true
+	        }
+	    },
+	    data: function data() {
+	        return {
+	            "top": '0px',
+	            "left": '0px'
+	        };
+	    },
+	    attached: function attached() {
+	        var _this = this;
+
+	        this.contentWrap = this.$els['content'];
+	        $('body').on('click', function (e) {
+	            e.preventDefault();
+	            var t = e.target || e.currentTarget;
+	            var ischild = $(t).closest(_this.contentWrap).length > 0;
+
+	            if (t !== _this.contentWrap && !ischild) {
+	                _this.closeMenu();
+	            }
+	        });
+	    },
+
+	    methods: {
+	        setMenu: function setMenu(top, left) {
+	            var largestHeight = window.innerHeight - this.contentWrap.offsetHeight - 25;
+	            var largestWidth = window.innerWidth - this.contentWrap.offsetWidth - 25;
+
+	            if (top > largestHeight) top = largestHeight;
+
+	            if (left > largestWidth) left = largestWidth;
+
+	            this.$set('top', top + 'px');
+	            this.$set('left', left + 'px');
+	        },
+	        closeMenu: function closeMenu() {
+	            this.$set('viewMenu', false);
+	        },
+	        openMenu: function openMenu(pos) {
+	            this.viewMenu = true;
+	            _vue2.default.nextTick((function () {
+	                this.setMenu(pos.y, pos.x);
+	            }).bind(this));
+	        },
+	        selectItem: function selectItem(idx) {}
+	    },
+	    events: {
+	        "show-menu": function showMenu(pos) {
+	            this.contentWrap.focus();
+	            this.openMenu(pos);
+	        }
+	    }
+	});
+
+/***/ },
+/* 35 */
+/***/ function(module, exports) {
+
+	module.exports = "<ul class=\"v-menu navy min-size-required\" v-show=\"viewMenu\" v-el:content v-bind:style=\"{top:top, left:left}\" v-on:blur=\"closeMenu\">\r\n    <li v-on:click=\"selectItem('open')\"><a href=\"javascript;\"><span class=\"mif-folder icon\"></span> open </a></li>\r\n    <li><a href=\"javascript;\"><span class=\"mif-folder icon\"></span> edit </a></li>\r\n</ul>";
+
+/***/ },
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14830,7 +14941,7 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _stepper = __webpack_require__(35);
+	var _stepper = __webpack_require__(37);
 
 	var _stepper2 = _interopRequireDefault(_stepper);
 
@@ -14899,13 +15010,13 @@
 	});
 
 /***/ },
-/* 35 */
+/* 37 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"wizard\" v-el:wrapper>\r\n    <div class=\"steps\" v-el:content> \r\n        <div class=\"step\" v-for=\"tab in stepkeys\" data-step=\"{{$index}}\">\r\n            <component v-bind:is=\"tab\"></component>\r\n        </div>\r\n        <div class=\"step\" v-if=\"stepinited\">\r\n            <div class=\"notify success\">\r\n                <span class=\"notify-closer\"></span>\r\n                <span class=\"notify-title\">Success</span> \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n";
 
 /***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14918,11 +15029,11 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _formproject = __webpack_require__(37);
+	var _formproject = __webpack_require__(39);
 
 	var _formproject2 = _interopRequireDefault(_formproject);
 
-	var _projectAction = __webpack_require__(38);
+	var _projectAction = __webpack_require__(40);
 
 	var _store = __webpack_require__(12);
 
@@ -14957,13 +15068,13 @@
 	});
 
 /***/ },
-/* 37 */
+/* 39 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"grid\">\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目名</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"pname\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目号</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bugid\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目别名</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"palias\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>";
 
 /***/ },
-/* 38 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14996,7 +15107,7 @@
 	};
 
 /***/ },
-/* 39 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -15009,11 +15120,11 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _formbranch = __webpack_require__(40);
+	var _formbranch = __webpack_require__(42);
 
 	var _formbranch2 = _interopRequireDefault(_formbranch);
 
-	var _projectAction = __webpack_require__(38);
+	var _projectAction = __webpack_require__(40);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -15043,13 +15154,13 @@
 	});
 
 /***/ },
-/* 40 */
+/* 42 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"grid\">\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支名</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bname\">\r\n        </div>\r\n    </div>\r\n</div>\r\n<!--<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支目录</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" >\r\n        </div>\r\n    </div>\r\n</div>-->\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"ptype\">\r\n                <option v-for=\"opt in ptypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div>   \r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"atype\">\r\n                <option v-for=\"opt in atypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div> \r\n</div>\r\n<input type=\"hidden\" v-model=\"pid\">";
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -15065,7 +15176,7 @@
 	}
 
 /***/ },
-/* 42 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -15074,7 +15185,7 @@
 	    value: true
 	});
 
-	var _root = __webpack_require__(43);
+	var _root = __webpack_require__(45);
 
 	var _root2 = _interopRequireDefault(_root);
 
@@ -15105,7 +15216,7 @@
 	};
 
 /***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports) {
 
 	module.exports = "<div >\r\n<router-view v-bind:serverconf.sync=\"serverconf\"></router-view>\r\n</div>";
