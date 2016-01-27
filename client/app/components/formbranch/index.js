@@ -10,8 +10,9 @@ export default Vue.component('form-branch', {
             ptype:'',
             atype:'',
             pid:'',
+            bpath:'',
             ptypes:[{value:'1',text:'qiyiV2'},{value:'2',text:'pingback'},{ value:'3',text:'lib'},{value:'4',text:'qiyistore'}],
-            atypes:[{value:'1',text:'创建svn'},{value:'2',text:'不下载代码'},{ value:'3',text:'只下载代码'}]
+            atypes:[{value:'1',text:'创建svn'},{value:'2',text:'不下载代码'},{ value:'3',text:'只下载代码' },{value:'4',text:'只创建branch纪录'}]
         }
     },
     methods: {
@@ -20,7 +21,8 @@ export default Vue.component('form-branch', {
                 name:this.bname,
                 projectids:this.pid,
                 projectcategory:this.ptype,
-                type:this.atype
+                type:this.atype,
+                svnpath:this.bpath
             });
         } 
     }

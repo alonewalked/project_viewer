@@ -137,7 +137,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/*!
-	 * Vue.js v1.0.10
+	 * Vue.js v1.0.13
 	 * (c) 2015 Evan You
 	 * Released under the MIT License.
 	 */
@@ -167,6 +167,7 @@
 	      vm._digest();
 	    }
 	  }
+	  return val;
 	}
 
 	/**
@@ -698,6 +699,7 @@
 	var str;
 	var dir;
 	var c;
+	var prev;
 	var i;
 	var l;
 	var lastFilterIndex;
@@ -783,13 +785,14 @@
 	  dir = {};
 
 	  for (i = 0, l = str.length; i < l; i++) {
+	    prev = c;
 	    c = str.charCodeAt(i);
 	    if (inSingle) {
 	      // check single quote
-	      if (c === 0x27) inSingle = !inSingle;
+	      if (c === 0x27 && prev !== 0x5C) inSingle = !inSingle;
 	    } else if (inDouble) {
 	      // check double quote
-	      if (c === 0x22) inDouble = !inDouble;
+	      if (c === 0x22 && prev !== 0x5C) inDouble = !inDouble;
 	    } else if (c === 0x7C && // pipe
 	    str.charCodeAt(i + 1) !== 0x7C && str.charCodeAt(i - 1) !== 0x7C) {
 	      if (dir.expression == null) {
@@ -1260,6 +1263,18 @@
 	}
 
 	/**
+	 * Check the presence of a bind attribute.
+	 *
+	 * @param {Node} node
+	 * @param {String} name
+	 * @return {Boolean}
+	 */
+
+	function hasBindAttr(node, name) {
+	  return node.hasAttribute(name) || node.hasAttribute(':' + name) || node.hasAttribute('v-bind:' + name);
+	}
+
+	/**
 	 * Insert el before target
 	 *
 	 * @param {Element} el
@@ -1349,10 +1364,29 @@
 	}
 
 	/**
+	 * In IE9, setAttribute('class') will result in empty class
+	 * if the element also has the :class attribute; However in
+	 * PhantomJS, setting `className` does not work on SVG elements...
+	 * So we have to do a conditional check here.
+	 *
+	 * @param {Element} el
+	 * @param {String} cls
+	 */
+
+	function setClass(el, cls) {
+	  /* istanbul ignore if */
+	  if (isIE9 && !(el instanceof SVGElement)) {
+	    el.className = cls;
+	  } else {
+	    el.setAttribute('class', cls);
+	  }
+	}
+
+	/**
 	 * Add class with compatibility for IE & SVG
 	 *
 	 * @param {Element} el
-	 * @param {Strong} cls
+	 * @param {String} cls
 	 */
 
 	function addClass(el, cls) {
@@ -1361,7 +1395,7 @@
 	  } else {
 	    var cur = ' ' + (el.getAttribute('class') || '') + ' ';
 	    if (cur.indexOf(' ' + cls + ' ') < 0) {
-	      el.setAttribute('class', (cur + cls).trim());
+	      setClass(el, (cur + cls).trim());
 	    }
 	  }
 	}
@@ -1370,7 +1404,7 @@
 	 * Remove class with compatibility for IE & SVG
 	 *
 	 * @param {Element} el
-	 * @param {Strong} cls
+	 * @param {String} cls
 	 */
 
 	function removeClass(el, cls) {
@@ -1382,7 +1416,7 @@
 	    while (cur.indexOf(tar) >= 0) {
 	      cur = cur.replace(tar, ' ');
 	    }
-	    el.setAttribute('class', cur.trim());
+	    setClass(el, cur.trim());
 	  }
 	  if (!el.className) {
 	    el.removeAttribute('class');
@@ -1542,6 +1576,7 @@
 	}
 
 	var commonTagRE = /^(div|p|span|img|a|b|i|br|ul|ol|li|h1|h2|h3|h4|h5|h6|code|pre|table|th|td|tr|form|label|input|select|option|nav|article|section|header|footer)$/;
+	var reservedTagRE = /^(slot|partial|component)$/;
 
 	/**
 	 * Check if an element is a component, if yes return its
@@ -1555,7 +1590,7 @@
 	function checkComponentAttr(el, options) {
 	  var tag = el.tagName.toLowerCase();
 	  var hasAttrs = el.hasAttributes();
-	  if (!commonTagRE.test(tag) && tag !== 'component') {
+	  if (!commonTagRE.test(tag) && !reservedTagRE.test(tag)) {
 	    if (resolveAsset(options, 'components', tag)) {
 	      return { id: tag };
 	    } else {
@@ -1606,6 +1641,7 @@
 
 	function initProp(vm, prop, value) {
 	  var key = prop.path;
+	  value = coerceProp(prop, value);
 	  vm[key] = vm._data[key] = assertProp(prop, value) ? value : undefined;
 	}
 
@@ -1661,6 +1697,23 @@
 	    }
 	  }
 	  return true;
+	}
+
+	/**
+	 * Force parsing value with coerce option.
+	 *
+	 * @param {*} value
+	 * @param {Object} options
+	 * @return {*}
+	 */
+
+	function coerceProp(prop, value) {
+	  var coerce = prop.options.coerce;
+	  if (!coerce) {
+	    return value;
+	  }
+	  // coerce is a function
+	  return coerce(value);
 	}
 
 	function formatType(val) {
@@ -1848,8 +1901,8 @@
 	    var ids = Object.keys(components);
 	    for (var i = 0, l = ids.length; i < l; i++) {
 	      var key = ids[i];
-	      if (commonTagRE.test(key)) {
-	        process.env.NODE_ENV !== 'production' && warn('Do not use built-in HTML elements as component ' + 'id: ' + key);
+	      if (commonTagRE.test(key) || reservedTagRE.test(key)) {
+	        process.env.NODE_ENV !== 'production' && warn('Do not use built-in or reserved HTML elements as component ' + 'id: ' + key);
 	        continue;
 	      }
 	      def = components[key];
@@ -2036,7 +2089,7 @@
 
 	def(arrayProto, '$set', function $set(index, val) {
 	  if (index >= this.length) {
-	    this.length = index + 1;
+	    this.length = Number(index) + 1;
 	  }
 	  return this.splice(index, 1, val)[0];
 	});
@@ -2152,8 +2205,7 @@
 
 	Observer.prototype.walk = function (obj) {
 	  var keys = Object.keys(obj);
-	  var i = keys.length;
-	  while (i--) {
+	  for (var i = 0, l = keys.length; i < l; i++) {
 	    this.convert(keys[i], obj[keys[i]]);
 	  }
 	};
@@ -2165,8 +2217,7 @@
 	 */
 
 	Observer.prototype.observeArray = function (items) {
-	  var i = items.length;
-	  while (i--) {
+	  for (var i = 0, l = items.length; i < l; i++) {
 	    observe(items[i]);
 	  }
 	};
@@ -2230,10 +2281,8 @@
 	 */
 
 	function copyAugment(target, src, keys) {
-	  var i = keys.length;
-	  var key;
-	  while (i--) {
-	    key = keys[i];
+	  for (var i = 0, l = keys.length; i < l; i++) {
+	    var key = keys[i];
 	    def(target, key, src[key]);
 	  }
 	}
@@ -2256,7 +2305,7 @@
 	  var ob;
 	  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
 	    ob = value.__ob__;
-	  } else if ((isArray(value) || isPlainObject(value)) && !Object.isFrozen(value) && !value._isVue) {
+	  } else if ((isArray(value) || isPlainObject(value)) && Object.isExtensible(value) && !value._isVue) {
 	    ob = new Observer(value);
 	  }
 	  if (ob && vm) {
@@ -2361,6 +2410,7 @@
 		inDoc: inDoc,
 		getAttr: getAttr,
 		getBindAttr: getBindAttr,
+		hasBindAttr: hasBindAttr,
 		before: before,
 		after: after,
 		remove: remove,
@@ -2368,6 +2418,7 @@
 		replace: replace,
 		on: on$1,
 		off: off,
+		setClass: setClass,
 		addClass: addClass,
 		removeClass: removeClass,
 		extractContent: extractContent,
@@ -2383,7 +2434,9 @@
 		checkComponentAttr: checkComponentAttr,
 		initProp: initProp,
 		assertProp: assertProp,
+		coerceProp: coerceProp,
 		commonTagRE: commonTagRE,
+		reservedTagRE: reservedTagRE,
 		get warn () { return warn; }
 	});
 
@@ -2834,11 +2887,11 @@
 
 	var wsRE = /\s/g;
 	var newlineRE = /\n/g;
-	var saveRE = /[\{,]\s*[\w\$_]+\s*:|('[^']*'|"[^"]*")|new |typeof |void /g;
+	var saveRE = /[\{,]\s*[\w\$_]+\s*:|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|new |typeof |void /g;
 	var restoreRE = /"(\d+)"/g;
-	var pathTestRE = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\]|\[\d+\]|\[[A-Za-z_$][\w$]*\])*$/;
-	var pathReplaceRE = /[^\w$\.]([A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\])*)/g;
-	var booleanLiteralRE = /^(true|false)$/;
+	var pathTestRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\]|\[\d+\]|\[[A-Za-z_$][\w$]*\])*$/;
+	var identRE = /[^\w$\.](?:[A-Za-z_$][\w$]*)/g;
+	var booleanLiteralRE = /^(?:true|false)$/;
 
 	/**
 	 * Save / Rewrite / Restore
@@ -2921,7 +2974,7 @@
 	  var body = exp.replace(saveRE, save).replace(wsRE, '');
 	  // rewrite all paths
 	  // pad 1 space here becaue the regex matches 1 extra char
-	  body = (' ' + body).replace(pathReplaceRE, rewrite).replace(restoreRE, restore);
+	  body = (' ' + body).replace(identRE, rewrite).replace(restoreRE, restore);
 	  return makeGetterFn(body);
 	}
 
@@ -3311,11 +3364,11 @@
 	  if (this.active) {
 	    var value = this.get();
 	    if (value !== this.value ||
-	    // Deep watchers and Array watchers should fire even
+	    // Deep watchers and watchers on Object/Arrays should fire even
 	    // when the value is the same, because the value may
 	    // have mutated; but only do so if this is a
 	    // non-shallow update (caused by a vm digest).
-	    (isArray(value) || this.deep) && !this.shallow) {
+	    (isObject(value) || this.deep) && !this.shallow) {
 	      // set new value
 	      var oldValue = this.value;
 	      this.value = value;
@@ -3413,7 +3466,7 @@
 	var cloak = {
 	  bind: function bind() {
 	    var el = this.el;
-	    this.vm.$once('hook:compiled', function () {
+	    this.vm.$once('pre-hook:compiled', function () {
 	      el.removeAttribute('v-cloak');
 	    });
 	  }
@@ -3425,9 +3478,20 @@
 	  }
 	};
 
+	var ON = 700;
+	var MODEL = 800;
+	var BIND = 850;
+	var TRANSITION = 1100;
+	var EL = 1500;
+	var COMPONENT = 1500;
+	var PARTIAL = 1750;
+	var SLOT = 1750;
+	var FOR = 2000;
+	var IF = 2000;
+
 	var el = {
 
-	  priority: 1500,
+	  priority: EL,
 
 	  bind: function bind() {
 	    /* istanbul ignore if */
@@ -3561,13 +3625,12 @@
 	var xlinkNS = 'http://www.w3.org/1999/xlink';
 	var xlinkRE = /^xlink:/;
 
-	// these input element attributes should also set their
-	// corresponding properties
-	var inputProps = {
-	  value: 1,
-	  checked: 1,
-	  selected: 1
-	};
+	// check for attributes that prohibit interpolations
+	var disallowedInterpAttrRE = /^v-|^:|^@|^(is|transition|transition-mode|debounce|track-by|stagger|enter-stagger|leave-stagger)$/;
+
+	// these attributes should also set their corresponding properties
+	// because they only affect the initial state of the element
+	var attrWithPropsRE = /^(value|checked|selected|muted)$/;
 
 	// these attributes should set a hidden property for
 	// binding v-model to object values
@@ -3577,12 +3640,9 @@
 	  'false-value': '_falseValue'
 	};
 
-	// check for attributes that prohibit interpolations
-	var disallowedInterpAttrRE = /^v-|^:|^@|^(is|transition|transition-mode|debounce|track-by|stagger|enter-stagger|leave-stagger)$/;
-
 	var bind = {
 
-	  priority: 850,
+	  priority: BIND,
 
 	  bind: function bind() {
 	    var attr = this.arg;
@@ -3632,34 +3692,43 @@
 	  handleObject: style.handleObject,
 
 	  handleSingle: function handleSingle(attr, value) {
-	    if (inputProps[attr] && attr in this.el) {
-	      this.el[attr] = attr === 'value' ? value || '' : // IE9 will set input.value to "null" for null...
-	      value;
+	    var el = this.el;
+	    var interp = this.descriptor.interp;
+	    if (!interp && attrWithPropsRE.test(attr) && attr in el) {
+	      el[attr] = attr === 'value' ? value == null // IE9 will set input.value to "null" for null...
+	      ? '' : value : value;
 	    }
 	    // set model props
 	    var modelProp = modelProps[attr];
-	    if (modelProp) {
-	      this.el[modelProp] = value;
+	    if (!interp && modelProp) {
+	      el[modelProp] = value;
 	      // update v-model if present
-	      var model = this.el.__v_model;
+	      var model = el.__v_model;
 	      if (model) {
 	        model.listener();
 	      }
 	    }
 	    // do not set value attribute for textarea
-	    if (attr === 'value' && this.el.tagName === 'TEXTAREA') {
-	      this.el.removeAttribute(attr);
+	    if (attr === 'value' && el.tagName === 'TEXTAREA') {
+	      el.removeAttribute(attr);
 	      return;
 	    }
 	    // update attribute
 	    if (value != null && value !== false) {
-	      if (xlinkRE.test(attr)) {
-	        this.el.setAttributeNS(xlinkNS, attr, value);
+	      if (attr === 'class') {
+	        // handle edge case #1960:
+	        // class interpolation should not overwrite Vue transition class
+	        if (el.__v_trans) {
+	          value += ' ' + el.__v_trans.id + '-transition';
+	        }
+	        setClass(el, value);
+	      } else if (xlinkRE.test(attr)) {
+	        el.setAttributeNS(xlinkNS, attr, value);
 	      } else {
-	        this.el.setAttribute(attr, value);
+	        el.setAttribute(attr, value);
 	      }
 	    } else {
-	      this.el.removeAttribute(attr);
+	      el.removeAttribute(attr);
 	    }
 	  }
 	};
@@ -3715,7 +3784,7 @@
 	var on = {
 
 	  acceptStatement: true,
-	  priority: 700,
+	  priority: ON,
 
 	  bind: function bind() {
 	    // deal with iframes
@@ -3815,7 +3884,7 @@
 	    };
 
 	    this.on('change', this.listener);
-	    if (el.checked) {
+	    if (el.hasAttribute('checked')) {
 	      this.afterBind = this.listener;
 	    }
 	  },
@@ -3961,7 +4030,7 @@
 	    };
 	    this.on('change', this.listener);
 
-	    if (el.checked) {
+	    if (el.hasAttribute('checked')) {
 	      this.afterBind = this.listener;
 	    }
 	  },
@@ -4015,13 +4084,18 @@
 	      });
 	      this.on('blur', function () {
 	        self.focused = false;
-	        self.listener();
+	        // do not sync value after fragment removal (#2017)
+	        if (!self._frag || self._frag.inserted) {
+	          self.rawListener();
+	        }
 	      });
 	    }
 
 	    // Now attach the main listener
-	    this.listener = function () {
-	      if (composing) return;
+	    this.listener = this.rawListener = function () {
+	      if (composing || !self._bound) {
+	        return;
+	      }
 	      var val = number || isRange ? toNumber(el.value) : el.value;
 	      self.set(val);
 	      // force update on next tick to avoid lock & same value
@@ -4101,7 +4175,7 @@
 
 	var model = {
 
-	  priority: 800,
+	  priority: MODEL,
 	  twoWay: true,
 	  handlers: handlers,
 	  params: ['lazy', 'number', 'debounce'],
@@ -4185,9 +4259,14 @@
 	  },
 
 	  apply: function apply(el, value) {
-	    applyTransition(el, value ? 1 : -1, function () {
+	    if (inDoc(el)) {
+	      applyTransition(el, value ? 1 : -1, toggle, this.vm);
+	    } else {
+	      toggle();
+	    }
+	    function toggle() {
 	      el.style.display = value ? '' : 'none';
-	    }, this.vm);
+	    }
 	  }
 	};
 
@@ -4222,7 +4301,7 @@
 	}
 
 	var tagRE$1 = /<([\w:]+)/;
-	var entityRE = /&\w+;|&#\d+;|&#x[\dA-F]+;/;
+	var entityRE = /&#?\w+?;/;
 
 	/**
 	 * Convert a string template to a DocumentFragment.
@@ -4668,7 +4747,7 @@
 
 	var vIf = {
 
-	  priority: 2000,
+	  priority: IF,
 
 	  bind: function bind() {
 	    var el = this.el;
@@ -4731,7 +4810,7 @@
 
 	var vFor = {
 
-	  priority: 2000,
+	  priority: FOR,
 
 	  params: ['track-by', 'stagger', 'enter-stagger', 'leave-stagger'],
 
@@ -5726,7 +5805,7 @@
 
 	var transition = {
 
-	  priority: 1100,
+	  priority: TRANSITION,
 
 	  update: function update(id, oldId) {
 	    var el = this.el;
@@ -5757,6 +5836,7 @@
 	    var twoWay = prop.mode === bindingModes.TWO_WAY;
 
 	    var parentWatcher = this.parentWatcher = new Watcher(parent, parentKey, function (val) {
+	      val = coerceProp(prop, val);
 	      if (assertProp(prop, val)) {
 	        child[childKey] = val;
 	      }
@@ -5776,7 +5856,7 @@
 	      // important: defer the child watcher creation until
 	      // the created hook (after data observation)
 	      var self = this;
-	      child.$once('hook:created', function () {
+	      child.$once('pre-hook:created', function () {
 	        self.childWatcher = new Watcher(child, childKey, function (val) {
 	          parentWatcher.set(val);
 	        }, {
@@ -5799,7 +5879,7 @@
 
 	var component = {
 
-	  priority: 1500,
+	  priority: COMPONENT,
 
 	  params: ['keep-alive', 'transition-mode', 'inline-template'],
 
@@ -5924,6 +6004,9 @@
 	    if (activateHook && !cached) {
 	      this.waitingFor = newComponent;
 	      activateHook.call(newComponent, function () {
+	        if (self.waitingFor !== newComponent) {
+	          return;
+	        }
 	        self.waitingFor = null;
 	        self.transition(newComponent, cb);
 	      });
@@ -6208,7 +6291,7 @@
 	var empty = {};
 
 	// regexes
-	var identRE = /^[$_a-zA-Z]+[\w$]*$/;
+	var identRE$1 = /^[$_a-zA-Z]+[\w$]*$/;
 	var settablePathRE = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\[[^\[\]]+\])*$/;
 
 	/**
@@ -6238,7 +6321,7 @@
 	    // interpreted as minus calculations by the parser
 	    // so we need to camelize the path here
 	    path = camelize(name);
-	    if (!identRE.test(path)) {
+	    if (!identRE$1.test(path)) {
 	      process.env.NODE_ENV !== 'production' && warn('Invalid prop key: "' + name + '". Prop keys ' + 'must be valid identifiers.');
 	      continue;
 	    }
@@ -6846,6 +6929,11 @@
 	function checkElementDirectives(el, options) {
 	  var tag = el.tagName.toLowerCase();
 	  if (commonTagRE.test(tag)) return;
+	  // special case: give named slot a higher priority
+	  // than unnamed slots
+	  if (tag === 'slot' && hasBindAttr(el, 'name')) {
+	    tag = '_namedSlot';
+	  }
 	  var def = resolveAsset(options, 'elementDirectives', tag);
 	  if (def) {
 	    return makeTerminalNodeLinkFn(el, tag, '', options, def);
@@ -7186,7 +7274,7 @@
 	      // non-element template
 	      replacer.nodeType !== 1 ||
 	      // single nested component
-	      tag === 'component' || resolveAsset(options, 'components', tag) || replacer.hasAttribute('is') || replacer.hasAttribute(':is') || replacer.hasAttribute('v-bind:is') ||
+	      tag === 'component' || resolveAsset(options, 'components', tag) || hasBindAttr(replacer, 'is') ||
 	      // element directive
 	      resolveAsset(options, 'elementDirectives', tag) ||
 	      // for block
@@ -7646,6 +7734,7 @@
 	   */
 
 	  Vue.prototype._callHook = function (hook) {
+	    this.$emit('pre-hook:' + hook);
 	    var handlers = this.$options[hook];
 	    if (handlers) {
 	      for (var i = 0, j = handlers.length; i < j; i++) {
@@ -7740,6 +7829,7 @@
 	  if (this.bind) {
 	    this.bind();
 	  }
+	  this._bound = true;
 
 	  if (this.literal) {
 	    this.update && this.update(descriptor.raw);
@@ -7775,7 +7865,6 @@
 	      this.update(watcher.value);
 	    }
 	  }
-	  this._bound = true;
 	};
 
 	/**
@@ -7832,7 +7921,8 @@
 	      called = true;
 	    }
 	  }, {
-	    immediate: true
+	    immediate: true,
+	    user: false
 	  });(this._paramUnwatchFns || (this._paramUnwatchFns = [])).push(unwatch);
 	};
 
@@ -7996,6 +8086,11 @@
 	    el = transclude(el, options);
 	    this._initElement(el);
 
+	    // handle v-pre on root node (#2026)
+	    if (el.nodeType === 1 && getAttr(el, 'v-pre') !== null) {
+	      return;
+	    }
+
 	    // root is always compiled per-instance, because
 	    // container attrs and props can be different every time.
 	    var contextOptions = this._context && this._context.$options;
@@ -8093,6 +8188,30 @@
 	      }
 	      return;
 	    }
+
+	    var destroyReady;
+	    var pendingRemoval;
+
+	    var self = this;
+	    // Cleanup should be called either synchronously or asynchronoysly as
+	    // callback of this.$remove(), or if remove and deferCleanup are false.
+	    // In any case it should be called after all other removing, unbinding and
+	    // turning of is done
+	    var cleanupIfPossible = function cleanupIfPossible() {
+	      if (destroyReady && !pendingRemoval && !deferCleanup) {
+	        self._cleanup();
+	      }
+	    };
+
+	    // remove DOM element
+	    if (remove && this.$el) {
+	      pendingRemoval = true;
+	      this.$remove(function () {
+	        pendingRemoval = false;
+	        cleanupIfPossible();
+	      });
+	    }
+
 	    this._callHook('beforeDestroy');
 	    this._isBeingDestroyed = true;
 	    var i;
@@ -8126,15 +8245,9 @@
 	    if (this.$el) {
 	      this.$el.__vue__ = null;
 	    }
-	    // remove DOM element
-	    var self = this;
-	    if (remove && this.$el) {
-	      this.$remove(function () {
-	        self._cleanup();
-	      });
-	    } else if (!deferCleanup) {
-	      this._cleanup();
-	    }
+
+	    destroyReady = true;
+	    cleanupIfPossible();
 	  };
 
 	  /**
@@ -8315,6 +8428,12 @@
 	      return extendOptions._Ctor;
 	    }
 	    var name = extendOptions.name || Super.options.name;
+	    if (process.env.NODE_ENV !== 'production') {
+	      if (!/^[a-zA-Z][\w-]+$/.test(name)) {
+	        warn('Invalid component name: ' + name);
+	        name = null;
+	      }
+	    }
 	    var Sub = createClass(name || 'VueComponent');
 	    Sub.prototype = Object.create(Super.prototype);
 	    Sub.prototype.constructor = Sub;
@@ -8399,8 +8518,8 @@
 	      } else {
 	        /* istanbul ignore if */
 	        if (process.env.NODE_ENV !== 'production') {
-	          if (type === 'component' && commonTagRE.test(id)) {
-	            warn('Do not use built-in HTML elements as component ' + 'id: ' + id);
+	          if (type === 'component' && (commonTagRE.test(id) || reservedTagRE.test(id))) {
+	            warn('Do not use built-in or reserved HTML elements as component ' + 'id: ' + id);
 	          }
 	        }
 	        if (type === 'component' && isPlainObject(definition)) {
@@ -8432,7 +8551,9 @@
 	      if (asStatement && !isSimplePath(exp)) {
 	        var self = this;
 	        return function statementHandler() {
+	          self.$arguments = toArray(arguments);
 	          res.get.call(self, self);
+	          self.$arguments = null;
 	        };
 	      } else {
 	        try {
@@ -8489,7 +8610,9 @@
 	    }
 	    var watcher = new Watcher(vm, expOrFn, cb, {
 	      deep: options && options.deep,
-	      filters: parsed && parsed.filters
+	      sync: options && options.sync,
+	      filters: parsed && parsed.filters,
+	      user: !options || options.user !== false
 	    });
 	    if (options && options.immediate) {
 	      cb.call(vm, watcher.value);
@@ -9253,7 +9376,7 @@
 
 	var partial = {
 
-	  priority: 1750,
+	  priority: PARTIAL,
 
 	  params: ['name'],
 
@@ -9296,55 +9419,46 @@
 	// instance being stored as `$options._content` during
 	// the transclude phase.
 
+	// We are exporting two versions, one for named and one
+	// for unnamed, because the unnamed slots must be compiled
+	// AFTER all named slots have selected their content. So
+	// we need to give them different priorities in the compilation
+	// process. (See #1965)
+
 	var slot = {
 
-	  priority: 1750,
-
-	  params: ['name'],
+	  priority: SLOT,
 
 	  bind: function bind() {
 	    var host = this.vm;
 	    var raw = host.$options._content;
-	    var content;
 	    if (!raw) {
 	      this.fallback();
 	      return;
 	    }
 	    var context = host._context;
-	    var slotName = this.params.name;
+	    var slotName = this.params && this.params.name;
 	    if (!slotName) {
-	      // Default content
-	      var self = this;
-	      var compileDefaultContent = function compileDefaultContent() {
-	        self.compile(extractFragment(raw.childNodes, raw, true), context, host);
-	      };
-	      if (!host._isCompiled) {
-	        // defer until the end of instance compilation,
-	        // because the default outlet must wait until all
-	        // other possible outlets with selectors have picked
-	        // out their contents.
-	        host.$once('hook:compiled', compileDefaultContent);
-	      } else {
-	        compileDefaultContent();
-	      }
+	      // Default slot
+	      this.tryCompile(extractFragment(raw.childNodes, raw, true), context, host);
 	    } else {
+	      // Named slot
 	      var selector = '[slot="' + slotName + '"]';
 	      var nodes = raw.querySelectorAll(selector);
 	      if (nodes.length) {
-	        content = extractFragment(nodes, raw);
-	        if (content.hasChildNodes()) {
-	          this.compile(content, context, host);
-	        } else {
-	          this.fallback();
-	        }
+	        this.tryCompile(extractFragment(nodes, raw), context, host);
 	      } else {
 	        this.fallback();
 	      }
 	    }
 	  },
 
-	  fallback: function fallback() {
-	    this.compile(extractContent(this.el, true), this.vm);
+	  tryCompile: function tryCompile(content, context, host) {
+	    if (content.hasChildNodes()) {
+	      this.compile(content, context, host);
+	    } else {
+	      this.fallback();
+	    }
 	  },
 
 	  compile: function compile(content, context, host) {
@@ -9359,12 +9473,21 @@
 	    }
 	  },
 
+	  fallback: function fallback() {
+	    this.compile(extractContent(this.el, true), this.vm);
+	  },
+
 	  unbind: function unbind() {
 	    if (this.unlink) {
 	      this.unlink();
 	    }
 	  }
 	};
+
+	var namedSlot = extend(extend({}, slot), {
+	  priority: slot.priority + 1,
+	  params: ['name']
+	});
 
 	/**
 	 * Extract qualified content nodes from a node list.
@@ -9405,10 +9528,11 @@
 
 	var elementDirectives = {
 	  slot: slot,
+	  _namedSlot: namedSlot, // same as slot but with higher priority
 	  partial: partial
 	};
 
-	Vue.version = '1.0.10';
+	Vue.version = '1.0.13';
 
 	/**
 	 * Vue and every constructor that extends Vue has an
@@ -9431,9 +9555,11 @@
 
 	// devtools global hook
 	/* istanbul ignore if */
-	if (process.env.NODE_ENV !== 'production') {
-	  if (inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
+	if (process.env.NODE_ENV !== 'production' && inBrowser) {
+	  if (window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
 	    window.__VUE_DEVTOOLS_GLOBAL_HOOK__.emit('init', Vue);
+	  } else if (/Chrome\/\d+/.test(navigator.userAgent)) {
+	    console.log('Download the Vue Devtools for a better development experience:\n' + 'https://github.com/vuejs/vue-devtools');
 	  }
 	}
 
@@ -12121,9 +12247,12 @@
 	    },
 	    methods: {
 	        login: function login() {
+	            var _this = this;
+
 	            var router = this.$route.router;
 	            _store2.default.login(this.username, this.password).then(function (data) {
 	                console.log('logined');
+	                _this.$dispatch('on-login', {});
 	                router.go('home');
 	            }, function (data) {
 	                console.log(data);
@@ -12167,7 +12296,7 @@
 
 
 	// module
-	exports.push([module.id, ".bg-darkTeal{\r\n    width:100%;\r\n    position:absolute;\r\n    top:0px;\r\n    bottom:0px;\r\n}\r\n.login-form {\r\n    width: 25rem;\r\n    height: 18.75rem;\r\n    position: fixed;\r\n    top: 50%;\r\n    margin-top: -9.375rem;\r\n    left: 50%;\r\n    margin-left: -12.5rem;\r\n    background-color: #ffffff;\r\n    opacity: 1;\r\n}", ""]);
+	exports.push([module.id, ".bg-darkTeal{\n    width:100%;\n    position:absolute;\n    top:0px;\n    bottom:0px;\n}\n.login-form {\n    width: 25rem;\n    height: 18.75rem;\n    position: fixed;\n    top: 50%;\n    margin-top: -9.375rem;\n    left: 50%;\n    margin-left: -12.5rem;\n    background-color: #ffffff;\n    opacity: 1;\n}", ""]);
 
 	// exports
 
@@ -12457,7 +12586,7 @@
 /* 11 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"bg-darkTeal\" >\r\n<div class=\"login-form padding20 block-shadow\" style=\"opacity: 1; transform: scale(1); transition: 0.5s;\">\r\n    <form>\r\n        <h1 class=\"text-light\">登录</h1>\r\n        <hr class=\"thin\">\r\n        <br>\r\n        <div class=\"input-control text full-size\" data-role=\"input\">\r\n            <label for=\"user_login\">用户名:</label>\r\n            <input type=\"text\" name=\"user_login\" v-model=\"username\" style=\"padding-right: 39px;\">\r\n            <button class=\"button helper-button clear\" tabindex=\"-1\" type=\"button\"><span class=\"mif-cross\"></span></button>\r\n        </div>\r\n        <br>\r\n        <br>\r\n        <div class=\"input-control password full-size\" data-role=\"input\">\r\n            <label for=\"user_password\">密码:</label>\r\n            <input type=\"password\" name=\"user_password\" v-model=\"password\" style=\"padding-right: 39px;\" @keyup.13=\"login\">\r\n            <button class=\"button helper-button reveal\" tabindex=\"-1\" type=\"button\"><span class=\"mif-looks\"></span></button>\r\n        </div>\r\n        <br>\r\n        <br>\r\n        <div class=\"form-actions\">\r\n            <button type=\"button\" class=\"button primary\" @click.prevent=\"login\" >登录...</button>\r\n            <button type=\"button\" class=\"button link\">取消</button>\r\n        </div>\r\n    </form>\r\n</div>\r\n</div>";
+	module.exports = "<div class=\"bg-darkTeal\" >\n<div class=\"login-form padding20 block-shadow\" style=\"opacity: 1; transform: scale(1); transition: 0.5s;\">\n    <form>\n        <h1 class=\"text-light\">登录</h1>\n        <hr class=\"thin\">\n        <br>\n        <div class=\"input-control text full-size\" data-role=\"input\">\n            <label for=\"user_login\">用户名:</label>\n            <input type=\"text\" name=\"user_login\" v-model=\"username\" style=\"padding-right: 39px;\">\n            <button class=\"button helper-button clear\" tabindex=\"-1\" type=\"button\"><span class=\"mif-cross\"></span></button>\n        </div>\n        <br>\n        <br>\n        <div class=\"input-control password full-size\" data-role=\"input\">\n            <label for=\"user_password\">密码:</label>\n            <input type=\"password\" name=\"user_password\" v-model=\"password\" style=\"padding-right: 39px;\" @keyup.13=\"login\">\n            <button class=\"button helper-button reveal\" tabindex=\"-1\" type=\"button\"><span class=\"mif-looks\"></span></button>\n        </div>\n        <br>\n        <br>\n        <div class=\"form-actions\">\n            <button type=\"button\" class=\"button primary\" @click.prevent=\"login\" >登录...</button>\n            <button type=\"button\" class=\"button link\">取消</button>\n        </div>\n    </form>\n</div>\n</div>";
 
 /***/ },
 /* 12 */
@@ -12481,14 +12610,16 @@
 
 	var api = new _firebase2.default('https://sweltering-fire-8263.firebaseio.com/app'); // store.js
 
+	var base_path = 'http://localhost:1212/';
 	var config = {
-	    login: 'http://localhost:1212/api/login',
-	    new_project: 'http://localhost:1212/api/create_project',
-	    new_branch: 'http://localhost:1212/api/create_branch',
-	    upd_project: 'http://localhost:1212/api/upd_project',
-	    projects: 'http://localhost:1212/api/get_data',
-	    serverconf: 'http://localhost:1212/api/get_serverconf',
-	    weekly: 'http://localhost:1212/api/send_weekly'
+	    login: base_path + 'api/login',
+	    new_project: base_path + 'api/create_project',
+	    new_branch: base_path + 'api/create_branch',
+	    upd_project: base_path + 'api/upd_project',
+	    projects: base_path + 'api/get_data',
+	    serverconf: base_path + 'api/get_serverconf',
+	    weekly: base_path + 'api/send_weekly',
+	    open_folder: base_path + 'api/open_folder'
 	};
 	var loginUser = null;
 	var store = new _events.EventEmitter();
@@ -12504,28 +12635,30 @@
 	// login
 	store.login = function (uname, pwd) {
 	    return new _es6Promise.Promise(function (resolve, reject) {
-	        api.child('users/' + uname).once('value', function (data) {
-	            if (pwd === data.val()) {
-	                $.ajax({
-	                    url: config['login'],
-	                    data: {
-	                        name: uname,
-	                        password: pwd,
-	                        email: uname + '@123.com'
-	                    },
-	                    dataType: 'jsonp',
-	                    success: function success(d) {
-	                        loginUser = d.data;
-	                        resolve(loginUser);
-	                    },
-	                    error: function error(err) {
-	                        reject(err);
-	                    }
-	                });
-	            } else {
-	                reject('password error');
+	        //api.child('users/' + uname)
+	        //.once('value', data => {
+	        //    if(pwd === data.val()){
+	        $.ajax({
+	            url: config['login'],
+	            data: {
+	                name: uname,
+	                password: pwd,
+	                email: uname + '@123.com'
+	            },
+	            dataType: 'jsonp',
+	            success: function success(d) {
+	                loginUser = d.data;
+	                resolve(loginUser);
+	            },
+	            error: function error(err) {
+	                reject(err);
 	            }
-	        }, reject);
+	        });
+	        //}
+	        //else{
+	        //    reject('password error');
+	        //}
+	        //}, reject);
 	    });
 	};
 	store.getLoginUser = function () {
@@ -12551,7 +12684,7 @@
 	};
 	store.getServerConf = function (callback) {
 	    if (storeData['serverconfig']) {
-	        return callback(storeData['projects']);
+	        return callback(storeData['serverconfig']);
 	    }
 	    $.ajax({
 	        url: config.serverconf,
@@ -12630,7 +12763,24 @@
 	        });
 	    });
 	};
-
+	store.openFolder = function (item, callback) {
+	    return new _es6Promise.Promise(function (resolve, reject) {
+	        $.ajax({
+	            dataType: 'jsonp',
+	            url: config.open_folder,
+	            data: {
+	                "folder": 'test1'
+	            },
+	            success: function success(d) {
+	                if (d.code === 'A00000') {
+	                    resolve(d);
+	                } else {
+	                    reject(d);
+	                }
+	            }
+	        });
+	    });
+	};
 	exports.default = store;
 
 /***/ },
@@ -12994,18 +13144,11 @@
 	        break;
 	      // slower
 	      default:
-	        len = arguments.length;
-	        args = new Array(len - 1);
-	        for (i = 1; i < len; i++)
-	          args[i - 1] = arguments[i];
+	        args = Array.prototype.slice.call(arguments, 1);
 	        handler.apply(this, args);
 	    }
 	  } else if (isObject(handler)) {
-	    len = arguments.length;
-	    args = new Array(len - 1);
-	    for (i = 1; i < len; i++)
-	      args[i - 1] = arguments[i];
-
+	    args = Array.prototype.slice.call(arguments, 1);
 	    listeners = handler.slice();
 	    len = listeners.length;
 	    for (i = 0; i < len; i++)
@@ -13043,7 +13186,6 @@
 
 	  // Check for listener leak
 	  if (isObject(this._events[type]) && !this._events[type].warned) {
-	    var m;
 	    if (!isUndefined(this._maxListeners)) {
 	      m = this._maxListeners;
 	    } else {
@@ -13165,7 +13307,7 @@
 
 	  if (isFunction(listeners)) {
 	    this.removeListener(type, listeners);
-	  } else {
+	  } else if (listeners) {
 	    // LIFO order
 	    while (listeners.length)
 	      this.removeListener(type, listeners[listeners.length - 1]);
@@ -13186,15 +13328,20 @@
 	  return ret;
 	};
 
+	EventEmitter.prototype.listenerCount = function(type) {
+	  if (this._events) {
+	    var evlistener = this._events[type];
+
+	    if (isFunction(evlistener))
+	      return 1;
+	    else if (evlistener)
+	      return evlistener.length;
+	  }
+	  return 0;
+	};
+
 	EventEmitter.listenerCount = function(emitter, type) {
-	  var ret;
-	  if (!emitter._events || !emitter._events[type])
-	    ret = 0;
-	  else if (isFunction(emitter._events[type]))
-	    ret = 1;
-	  else
-	    ret = emitter._events[type].length;
-	  return ret;
+	  return emitter.listenerCount(type);
 	};
 
 	function isFunction(arg) {
@@ -14251,11 +14398,11 @@
 
 	var _table2 = _interopRequireDefault(_table);
 
-	var _stepper = __webpack_require__(36);
+	var _stepper = __webpack_require__(37);
 
 	var _stepper2 = _interopRequireDefault(_stepper);
 
-	var _formproject = __webpack_require__(38);
+	var _formproject = __webpack_require__(39);
 
 	var _formproject2 = _interopRequireDefault(_formproject);
 
@@ -14291,8 +14438,8 @@
 	        return {
 	            regurl: '',
 	            data: {
-	                user: null,
-	                project: null
+	                user: {},
+	                project: []
 	            },
 	            modal: {
 	                showModal: false,
@@ -14314,7 +14461,7 @@
 	    methods: {
 	        getTableChild: function getTableChild() {
 	            /*var _chd = this.$children.filter(function(item){
-	                return (item instanceof table) 
+	                return (item instanceof table)
 	            });
 	            return _chd?_chd[0]:null;*/
 	            return this.$refs.datatable;
@@ -14325,6 +14472,8 @@
 	            _store2.default.getProject(function (d) {
 	                return _this.$set('project', d.data);
 	            });
+	            var dt = this.getTableChild();
+	            dt && dt.clearup();
 	        },
 	        pushMessage: function pushMessage(cmd) {
 	            switch (cmd) {
@@ -14481,7 +14630,7 @@
 
 
 	// module
-	exports.push([module.id, "html, body {\r\n    height: 100%;\r\n}\r\nbody {\r\n}\r\n.page-content {\r\n    padding-top: 3.125rem;\r\n    min-height: 100%;\r\n    height: 100%;\r\n}\r\n.table .input-control.checkbox {\r\n    line-height: 1;\r\n    min-height: 0;\r\n    height: auto;\r\n}\r\n\r\n@media screen and (max-width: 800px){\r\n    #cell-sidebar {\r\n        flex-basis: 52px;\r\n    }\r\n    #cell-content {\r\n        flex-basis: calc(100% - 52px);\r\n    }\r\n}\r\n\r\n", ""]);
+	exports.push([module.id, "html, body {\n    height: 100%;\n}\nbody {\n}\n.page-content {\n    padding-top: 3.125rem;\n    min-height: 100%;\n    height: 100%;\n}\n.table .input-control.checkbox {\n    line-height: 1;\n    min-height: 0;\n    height: auto;\n}\n\n@media screen and (max-width: 800px){\n    #cell-sidebar {\n        flex-basis: 52px;\n    }\n    #cell-content {\n        flex-basis: calc(100% - 52px);\n    }\n}\n\n", ""]);
 
 	// exports
 
@@ -14490,7 +14639,7 @@
 /* 22 */
 /***/ function(module, exports) {
 
-	module.exports = "<top-header v-bind:user=\"$data.user\"></top-header>\r\n<div class=\"page-content\">\r\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\r\n        <div class=\"row\" style=\"height: 100%\">\r\n            <sidebar></sidebar>\r\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\r\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\r\n                <hr class=\"thin bg-grayLighter\">\r\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\r\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\r\n                <button class=\"button warning\" v-on:click=\"pushMessage('refresh')\"><span class=\"mif-loop2\"></span> </button> \r\n                <hr class=\"thin bg-grayLighter\">\r\n                <data-table v-bind:lists=\"$data.project\" v-bind:serverconf=\"serverconf\" v-ref:datatable></data-table>\r\n                \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" \r\nv-bind:steps=\"modal.steps\">\r\n    \r\n</v-modal>";
+	module.exports = "<top-header v-bind:user=\"$data.user\" v-bind:bugurl.sync=\"$data.serverconf.bugzilla\"></top-header>\n<div class=\"page-content\">\n    <div class=\"flex-grid no-responsive-future\" style=\"height: 100%;\">\n        <div class=\"row\" style=\"height: 100%\">\n            <sidebar></sidebar>\n            <div class=\"cell auto-size padding20 bg-white\" id=\"cell-content\">\n                <h1 class=\"text-light\">项目列表<span class=\"mif-drive-eta place-right\"></span></h1>\n                <hr class=\"thin bg-grayLighter\">\n                <button class=\"button primary\" v-on:click.prevent=\"pushMessage('newProj')\"><span class=\"mif-plus\"></span> 新建</button>\n                <button class=\"button success\" v-on:click=\"pushMessage('weekly')\"><span class=\"mif-play\">周报</span> </button>\n                <button class=\"button warning\" v-on:click=\"pushMessage('refresh')\"><span class=\"mif-loop2\"></span> </button>\n                <hr class=\"thin bg-grayLighter\">\n                <data-table v-bind:lists.sync=\"project\" v-bind:serverconf.sync=\"$data.serverconf\" v-ref:datatable></data-table>\n            </div>\n        </div>\n    </div>\n</div>\n<v-modal v-bind:shown.sync=\"modal.show\" v-bind:content=\"modal.conHtml\" v-bind:header=\"modal.conHeader\" v-bind:steps=\"modal.steps\">\n</v-modal>";
 
 /***/ },
 /* 23 */
@@ -14551,18 +14700,23 @@
 	    props: {
 	        user: {
 	            type: Object
+	        },
+	        bugurl: {
+	            type: Object,
+	            twoWay: true
 	        }
 	    },
 	    data: function data() {
 	        return {};
-	    }
+	    },
+	    ready: function ready() {}
 	};
 
 /***/ },
 /* 25 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"app-bar fixed-top darcula\" data-role=\"appbar\">\r\n        <a class=\"app-bar-element branding\">项目管理</a>\r\n        <span class=\"app-bar-divider\"></span>\r\n        <ul class=\"app-bar-menu\">\r\n            <li><a href=\"\"></a></li>\r\n            <li>\r\n                <a href=\"\" class=\"dropdown-toggle\">项目</a>\r\n                <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                    <li><a href=\"\">新建</a></li>\r\n                    <li class=\"divider\"></li>\r\n                    <li>\r\n                        <a href=\"\" class=\"dropdown-toggle\">启动</a>\r\n                        <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                            <li><a href=\"\">Project 1</a></li>\r\n                            <li><a href=\"\">Project 2</a></li>\r\n                            <li><a href=\"\">Project 3</a></li>\r\n                            <li class=\"divider\"></li>\r\n                            <li><a href=\"\">Clear list</a></li>\r\n                        </ul>\r\n                    </li>\r\n                </ul>\r\n            </li>\r\n            <li><a href=\"\"></a></li>\r\n            <li><a href=\"\"></a></li>\r\n            <li>\r\n                <a href=\"\" class=\"dropdown-toggle\">Help</a>\r\n                <ul class=\"d-menu\" data-role=\"dropdown\">\r\n                    <li><a href=\"\">ChatOn</a></li>\r\n                    <li><a href=\"\">Community support</a></li>\r\n                    <li class=\"divider\"></li>\r\n                    <li><a href=\"\">About</a></li>\r\n                </ul>\r\n            </li>\r\n        </ul>\r\n\r\n        <div class=\"app-bar-element place-right\">\r\n            <span class=\"dropdown-toggle\"><span class=\"mif-cog\"></span>{{user.name}}</span>\r\n            <div class=\"app-bar-drop-container padding10 place-right no-margin-top block-shadow fg-dark\" data-role=\"dropdown\" data-no-close=\"true\" style=\"width: 220px\">\r\n                <h2 class=\"text-light\">Quick settings</h2>\r\n                <ul class=\"unstyled-list fg-dark\">\r\n                    <li><a href=\"\" class=\"fg-white1 fg-hover-yellow\">Profile</a></li>\r\n                    <li><a href=\"\" class=\"fg-white2 fg-hover-yellow\">Security</a></li>\r\n                    <li><a href=\"\" class=\"fg-white3 fg-hover-yellow\">Exit</a></li>\r\n                </ul>\r\n            </div>\r\n        </div>\r\n    </div>";
+	module.exports = "<div class=\"app-bar fixed-top darcula\" data-role=\"appbar\">\n        <a class=\"app-bar-element branding\">项目管理</a>\n        <span class=\"app-bar-divider\"></span>\n        <ul class=\"app-bar-menu\">\n            <li><a href=\"\"></a></li>\n            <li>\n                <a href=\"\" class=\"dropdown-toggle\">项目</a>\n                <ul class=\"d-menu\" data-role=\"dropdown\">\n                    <li><a href=\"\">新建</a></li>\n                    <li class=\"divider\"></li>\n                    <li>\n                        <a href=\"\" class=\"dropdown-toggle\">启动</a>\n                        <ul class=\"d-menu\" data-role=\"dropdown\">\n                            <li><a href=\"\">Project 1</a></li>\n                            <li><a href=\"\">Project 2</a></li>\n                            <li><a href=\"\">Project 3</a></li>\n                            <li class=\"divider\"></li>\n                            <li><a href=\"\">Clear list</a></li>\n                        </ul>\n                    </li>\n                </ul>\n            </li>\n            <li><a href=\"\" class=\"dropdown-toggle\">快捷入口</a>\n                <ul class=\"d-menu\" data-role=\"dropdown\">\n                    <li><a href=\"{{bugurl.mine}}\" target=\"_blank\">MY Bugs</a></li>\n                </ul>\n            </li>\n            <li><a href=\"\"></a></li>\n            <li>\n                <a href=\"\" class=\"dropdown-toggle\">Help</a>\n                <ul class=\"d-menu\" data-role=\"dropdown\">\n                    <li><a href=\"\">ChatOn</a></li>\n                    <li><a href=\"\">Community support</a></li>\n                    <li class=\"divider\"></li>\n                    <li><a href=\"\">About</a></li>\n                </ul>\n            </li>\n        </ul>\n\n        <div class=\"app-bar-element place-right\">\n            <span class=\"dropdown-toggle\"><span class=\"mif-cog\"></span>{{user.name}}</span>\n            <div class=\"app-bar-drop-container padding10 place-right no-margin-top block-shadow fg-dark\" data-role=\"dropdown\" data-no-close=\"true\" style=\"width: 220px\">\n                <h2 class=\"text-light\">Quick settings</h2>\n                <ul class=\"unstyled-list fg-dark\">\n                    <li><a href=\"\" class=\"fg-white1 fg-hover-yellow\">Profile</a></li>\n                    <li><a href=\"\" class=\"fg-white2 fg-hover-yellow\">Security</a></li>\n                    <li><a href=\"\" class=\"fg-white3 fg-hover-yellow\">Exit</a></li>\n                </ul>\n            </div>\n        </div>\n    </div>";
 
 /***/ },
 /* 26 */
@@ -14595,7 +14749,7 @@
 /* 27 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"cell size-x200\" id=\"cell-sidebar\" style=\"background-color: #71b1d1; height: 100%\">\r\n    <ul class=\"sidebar\">\r\n        <li class=\"active\"><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-vpn-publ icon\"></span>\r\n            <span class=\"title\">Project</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li class=\"\"><a href=\"#\">\r\n            <span class=\"mif-drive-eta icon\"></span>\r\n            <span class=\"title\">Branch</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-cloud icon\"></span>\r\n            <span class=\"title\">Apis</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n        <li><a href=\"#\">\r\n            <span class=\"mif-database icon\"></span>\r\n            <span class=\"title\">Tester</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li> \r\n        <li><a href=\"#\">\r\n            <span class=\"mif-apps icon\"></span>\r\n            <span class=\"title\">all items</span>\r\n            <span class=\"counter\">0</span>\r\n        </a></li>\r\n    </ul>\r\n</div>";
+	module.exports = "<div class=\"cell size-x200\" id=\"cell-sidebar\" style=\"background-color: #71b1d1; height: 100%\">\n    <ul class=\"sidebar\">\n        <li class=\"active\"><a href=\"#\">\n            <span class=\"mif-apps icon\"></span>\n            <span class=\"title\">all items</span>\n            <span class=\"counter\">0</span>\n        </a></li>\n        <li><a href=\"#\">\n            <span class=\"mif-vpn-publ icon\"></span>\n            <span class=\"title\">Project</span>\n            <span class=\"counter\">0</span>\n        </a></li>\n        <li class=\"\"><a href=\"#\">\n            <span class=\"mif-drive-eta icon\"></span>\n            <span class=\"title\">Branch</span>\n            <span class=\"counter\">0</span>\n        </a></li>\n        <li><a href=\"#\">\n            <span class=\"mif-cloud icon\"></span>\n            <span class=\"title\">Apis</span>\n            <span class=\"counter\">0</span>\n        </a></li>\n        <li><a href=\"#\">\n            <span class=\"mif-database icon\"></span>\n            <span class=\"title\">Tester</span>\n            <span class=\"counter\">0</span>\n        </a></li> \n        <li><a href=\"#\">\n            <span class=\"mif-apps icon\"></span>\n            <span class=\"title\">all items</span>\n            <span class=\"counter\">0</span>\n        </a></li>\n    </ul>\n</div>";
 
 /***/ },
 /* 28 */
@@ -14716,7 +14870,7 @@
 
 
 	// module
-	exports.push([module.id, ".modal-wrapper {\r\n    width: 50% !important;\r\n    height: 500px !important;\r\n    top: 50% !important;\r\n    margin-top: -250px;\r\n    left: 25% !important;\r\n}\r\n.step {\r\n  height: 270px !important;\r\n  overflow-y: scroll;\r\n}\r\n.step::-webkit-scrollbar {\r\n    width: 6px;\r\n}\r\n \r\n/* Track */\r\n.step::-webkit-scrollbar-track {\r\n    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); \r\n    -webkit-border-radius: 5px;\r\n    border-radius: 5px;\r\n}\r\n \r\n/* Handle */\r\n.step::-webkit-scrollbar-thumb {\r\n    -webkit-border-radius: 10px;\r\n    border-radius: 10px;\r\n    background: rgba(205, 204, 207,0.8); \r\n    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); \r\n}\r\n.step::-webkit-scrollbar-thumb:window-inactive {\r\nbackground: rgba(205, 204, 207,0.4); \r\n}", ""]);
+	exports.push([module.id, ".modal-wrapper {\n    width: 50% !important;\n    height: 500px !important;\n    top: 50% !important;\n    margin-top: -250px;\n    left: 25% !important;\n}\n.step {\n  height: 270px !important;\n  overflow-y: scroll;\n}\n.step::-webkit-scrollbar {\n    width: 6px;\n}\n \n/* Track */\n.step::-webkit-scrollbar-track {\n    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); \n    -webkit-border-radius: 5px;\n    border-radius: 5px;\n}\n \n/* Handle */\n.step::-webkit-scrollbar-thumb {\n    -webkit-border-radius: 10px;\n    border-radius: 10px;\n    background: rgba(205, 204, 207,0.8); \n    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); \n}\n.step::-webkit-scrollbar-thumb:window-inactive {\nbackground: rgba(205, 204, 207,0.4); \n}", ""]);
 
 	// exports
 
@@ -14725,7 +14879,7 @@
 /* 31 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"dialog modal-wrapper\" v-show=\"shown\">\r\n<div class=\"panel\" style=\" height: 100%; \">\r\n    <div class=\"heading\">\r\n        <h6 class=\"title\">{{$data.header}}</h6>\r\n    </div>\r\n    <div class=\"content padding10\" v-el:content style=\" height:100%; \">\r\n        <div v-if=\"shown\"></div>\r\n    </div>\r\n</div>\r\n<span class=\"dialog-close-button\" v-on:click.pervent=\"close\"></span></div>\r\n<div class=\"dialog-overlay op-dark\" v-if=\"shown\"></div>";
+	module.exports = "<div class=\"dialog modal-wrapper\" v-show=\"shown\">\n<div class=\"panel\" style=\" height: 100%; \">\n    <div class=\"heading\">\n        <h6 class=\"title\">{{$data.header}}</h6>\n    </div>\n    <div class=\"content padding10\" v-el:content style=\" height:100%; \">\n        <div v-if=\"shown\"></div>\n    </div>\n</div>\n<span class=\"dialog-close-button\" v-on:click.pervent=\"close\"></span></div>\n<div class=\"dialog-overlay op-dark\" v-if=\"shown\"></div>";
 
 /***/ },
 /* 32 */
@@ -14753,16 +14907,30 @@
 
 	exports.default = _vue2.default.component('data-table', {
 	    template: _table2.default,
-	    props: ['lists', 'serverconf'],
+	    props: {
+	        "lists": {
+	            type: Array,
+	            twoWay: true,
+	            default: []
+	        },
+	        "serverconf": {
+	            type: Object,
+	            twoWay: true,
+	            default: {}
+	        }
+	    },
 	    components: [{
 	        "context-menu": _contextmenu2.default
 	    }],
-	    created: function created() {
-	        this.$set('statuslist', this.serverconf['projectstatus']);
-	    },
+	    created: function created() {},
 	    attached: function attached() {
+	        var _this = this;
+
 	        this.table = this.$els.datatable;
 	        this.unwatch = this.$watch('$data.lists', this.check, { deep: true });
+	        this.$watch('serverconf', function () {
+	            _this.$set('statuslist', _this.serverconf['projectstatus']);
+	        });
 	    },
 	    data: function data() {
 	        return {
@@ -14782,7 +14950,14 @@
 	            }
 	        },
 	        setup: function setup() {
-	            $(this.table).DataTable();
+	            //$(this.table).DataTable();
+	        },
+	        clearup: function clearup() {
+	            this.$set('checkedItem', {});
+	            this.$set('updating', false);
+	            this.$set('edittingitem', null);
+	            this.$set('selectIndex', -1);
+	            this.$set('contextshow', false);
 	        },
 	        onNewBranch: function onNewBranch(id) {
 	            this.$dispatch('on-new-branch', {
@@ -14803,20 +14978,34 @@
 	            $('body').on('keydown', this.saveEdit);
 	        },
 	        saveEdit: function saveEdit(ev) {
+	            if (!this.edittingitem) {
+	                $('body').off('keydown', this.saveEdit);
+	                return;
+	            }
+	            if (ev.which == 27) {
+	                ev.preventDefault();
+	                this.$set('edittingitem', null);
+	                this.$set('updating', false);
+	                $('body').off('keydown', this.saveEdit);
+	                return;
+	            }
 	            if (!window.event.ctrlKey || !ev.keyCode == 83) {
 	                return;
 	            }
 	            if (!this.edittingitem) {
 	                return;
 	            }
-	            ev.preventDefault();
-	            if (!this.updating) {
-	                this.$dispatch('on-upd-project', {
-	                    target: this,
-	                    data: this.edittingitem
-	                });
+	            if (ev.keyCode == 83) {
+	                ev.preventDefault();
+	                if (!this.updating) {
+	                    this.$dispatch('on-upd-project', {
+	                        target: this,
+	                        data: this.edittingitem
+	                    });
+	                }
+	                this.$set('updating', true);
+	                $('body').off('keydown', this.saveEdit);
 	            }
-	            this.$set('updating', true);
 	        },
 	        stateRender: function stateRender(node) {
 	            var _atrr = this.statuslist.filter(function (item) {
@@ -14828,8 +15017,11 @@
 	            this.$set('selectIndex', idx);
 	        },
 	        openMenu: function openMenu(e) {
+	            if (this.selectIndex === -1) {
+	                return;
+	            }
 	            e.preventDefault();
-	            this.$broadcast('show-menu', { x: e.x, y: e.y });
+	            this.$broadcast('show-menu', { pos: { x: e.x, y: e.y }, selectItem: this.lists[this.selectIndex] });
 	        }
 	    }
 	});
@@ -14838,7 +15030,7 @@
 /* 33 */
 /***/ function(module, exports) {
 
-	module.exports = "<table class=\"dataTable border bordered\" data-auto-width=\"false\" v-el:datatable >\r\n    <thead>\r\n    <tr >\r\n        <td style=\"width: 20px\">\r\n        </td>\r\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\r\n        <td class=\"sortable-column\">Project name</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\r\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\r\n        <td style=\"width: 20px\">Switch</td>\r\n        <td class=\"sortable-column\" style=\"width: 100px\">SVN path</td>\r\n    </tr>\r\n    </thead>\r\n    <tbody v-on:contextmenu=\"openMenu($event)\">\r\n    <tr v-for=\"item in lists\" data-item={{$index}}  v-bind:class.sync=\"{ 'selected': selectIndex==$index}\" v-on:click=\"selectRow($index)\">\r\n        <td data-id=\"{{item._id}}\">\r\n            <label class=\"input-control checkbox small-check no-margin\">\r\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a href=\"http://bugzilla.qiyi.domain/show_bug.cgi?id={{item.bugzillaid}}\" target=\"_blank\">{{item.bugzillaid}}</a></td>\r\n        <td >{{item.name}}</td>\r\n        <td><a >{{item.ownerid.name}}</a></td>\r\n        <td class=\"align-center\" >\r\n            <span class=\"mif-checkmark fg-green\" @dblclick=\"editCell($index,item,'status')\" v-text=\"stateRender(item)\"></span>\r\n            <div class=\"input-control select\" v-if=\"edittingitem == item\">\r\n            <select class=\"\" v-model=\"item.status\">\r\n                <option v-for=\"opt in statuslist\" v-bind:value=\"opt.id\">{{opt.name}}</option>\r\n            </select>\r\n            </div>\r\n        </td>\r\n        <td>\r\n            <label class=\"switch-original\">\r\n                <input type=\"checkbox\" checked>\r\n                <span class=\"check\"></span>\r\n            </label>\r\n        </td>\r\n        <td ><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\r\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \r\n    </tr>\r\n    </tbody>\r\n</table>\r\n<context-menu v-bind:viewMenu.sync=\"contextshow\"></context-menu>\r\n\r\n\r\n";
+	module.exports = "<table class=\"dataTable border bordered\" data-auto-width=\"false\" v-el:datatable >\n    <thead>\n    <tr >\n        <td style=\"width: 20px\">\n        </td>\n        <td class=\"sortable-column sort-asc\" style=\"width: 100px\">ID</td>\n        <td class=\"sortable-column\">Project name</td>\n        <td class=\"sortable-column\" style=\"width: 100px\">ownerby</td>\n        <td class=\"sortable-column\" style=\"width: 20px\">Status</td>\n        <td style=\"width: 20px\">Switch</td>\n        <td class=\"sortable-column\" style=\"width: 250px;word-break: break-word;\">SVN path</td>\n    </tr>\n    </thead>\n    <tbody v-on:contextmenu=\"openMenu($event)\">\n    <tr v-for=\"item in lists\" data-item={{$index}}  v-bind:class.sync=\"{ 'selected': selectIndex==$index}\" >\n        <td data-id=\"{{item._id}}\">\n            <label class=\"input-control checkbox small-check no-margin\">\n                <input type=\"checkbox\" v-on:click=\"onItemClick($event,$index,item)\">\n                <span class=\"check\"></span>\n            </label>\n        </td>\n        <td ><a v-bind:href.sync=\"serverconf.bugzilla.show+item.bugzillaid\" target=\"_blank\">{{item.bugzillaid}}</a></td>\n        <td v-on:click=\"selectRow($index)\">{{item.name}}</td>\n        <td><a >{{item.ownerid.name}}</a></td>\n        <td class=\"align-center\" >\n            <span class=\"mif-checkmark fg-green\" @dblclick=\"editCell($index,item,'status')\" v-text=\"stateRender(item)\"></span>\n            <div class=\"input-control select\" v-if=\"edittingitem == item\">\n            <select class=\"\" v-model=\"item.status\">\n                <option v-for=\"opt in statuslist\" v-bind:value=\"opt.id\">{{opt.name}}</option>\n            </select>\n            </div>\n        </td>\n        <td>\n            <label class=\"switch-original\">\n                <input type=\"checkbox\" checked>\n                <span class=\"check\"></span>\n            </label>\n        </td>\n        <td style=\"width:250px;word-break: break-word;\"><a v-if=\"item.branchid\">{{item.branchid.svnpath}}</a>\n            <a v-else href=\"#\" v-on:click.prevent=\"onNewBranch(item._id)\">创建svn</a></td>  \n    </tr>\n    </tbody>\n</table>\n<context-menu v-bind:viewMenu.sync=\"contextshow\"></context-menu>\n\n\n";
 
 /***/ },
 /* 34 */
@@ -14847,7 +15039,7 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 
 	var _contextmenu = __webpack_require__(35);
@@ -14858,77 +15050,128 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
+	var _projectAction = __webpack_require__(36);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	exports.default = _vue2.default.component('context-menu', {
-	    template: _contextmenu2.default,
-	    props: {
-	        "viewMenu": {
-	            type: Boolean,
-	            twoWay: true,
-	            required: true
-	        }
-	    },
-	    data: function data() {
-	        return {
-	            "top": '0px',
-	            "left": '0px'
-	        };
-	    },
-	    attached: function attached() {
-	        var _this = this;
-
-	        this.contentWrap = this.$els['content'];
-	        $('body').on('click', function (e) {
-	            e.preventDefault();
-	            var t = e.target || e.currentTarget;
-	            var ischild = $(t).closest(_this.contentWrap).length > 0;
-
-	            if (t !== _this.contentWrap && !ischild) {
-	                _this.closeMenu();
-	            }
-	        });
-	    },
-
-	    methods: {
-	        setMenu: function setMenu(top, left) {
-	            var largestHeight = window.innerHeight - this.contentWrap.offsetHeight - 25;
-	            var largestWidth = window.innerWidth - this.contentWrap.offsetWidth - 25;
-
-	            if (top > largestHeight) top = largestHeight;
-
-	            if (left > largestWidth) left = largestWidth;
-
-	            this.$set('top', top + 'px');
-	            this.$set('left', left + 'px');
-	        },
-	        closeMenu: function closeMenu() {
-	            this.$set('viewMenu', false);
-	        },
-	        openMenu: function openMenu(pos) {
-	            this.viewMenu = true;
-	            _vue2.default.nextTick((function () {
-	                this.setMenu(pos.y, pos.x);
-	            }).bind(this));
-	        },
-	        selectItem: function selectItem(idx) {}
-	    },
-	    events: {
-	        "show-menu": function showMenu(pos) {
-	            this.contentWrap.focus();
-	            this.openMenu(pos);
-	        }
+	  template: _contextmenu2.default,
+	  props: {
+	    "viewMenu": {
+	      type: Boolean,
+	      twoWay: true,
+	      required: true
 	    }
+	  },
+	  data: function data() {
+	    return {
+	      "top": '0px',
+	      "left": '0px'
+	    };
+	  },
+	  attached: function attached() {
+	    var _this = this;
+
+	    this.contentWrap = this.$els['content'];
+	    $('body').on('click', function (e) {
+	      var t = e.target || e.currentTarget;
+	      var ischild = $(t).closest(_this.contentWrap).length > 0;
+	      if (t !== _this.contentWrap && !ischild) {
+	        _this.closeMenu();
+	      }
+	    });
+	  },
+
+	  methods: {
+	    setMenu: function setMenu(top, left) {
+	      var largestHeight = window.innerHeight - this.contentWrap.offsetHeight - 25;
+	      var largestWidth = window.innerWidth - this.contentWrap.offsetWidth - 25;
+
+	      if (top > largestHeight) top = largestHeight;
+
+	      if (left > largestWidth) left = largestWidth;
+
+	      this.$set('top', top + 'px');
+	      this.$set('left', left + 'px');
+	    },
+	    closeMenu: function closeMenu() {
+	      this.$set('viewMenu', false);
+	    },
+	    openMenu: function openMenu(pos) {
+	      this.viewMenu = true;
+	      _vue2.default.nextTick((function () {
+	        this.setMenu(pos.y, pos.x);
+	      }).bind(this));
+	    },
+	    itemClick: function itemClick(cmd) {
+	      switch (cmd) {
+	        case 'open':
+	          (0, _projectAction.openfolder)().then(this.closeMenu, this.closeMenu);
+	          break;
+	      }
+	    }
+	  },
+	  events: {
+	    "show-menu": function showMenu(data) {
+	      data = data || {};
+	      this.contentWrap.focus();
+	      if (data.selectItem) {
+	        this.$set('currentItem', data.selectItem);
+	      }
+	      this.openMenu(data.pos);
+	    }
+	  }
 	});
 
 /***/ },
 /* 35 */
 /***/ function(module, exports) {
 
-	module.exports = "<ul class=\"v-menu navy min-size-required\" v-show=\"viewMenu\" v-el:content v-bind:style=\"{top:top, left:left}\" v-on:blur=\"closeMenu\">\r\n    <li v-on:click=\"selectItem('open')\"><a href=\"javascript;\"><span class=\"mif-folder icon\"></span> open </a></li>\r\n    <li><a href=\"javascript;\"><span class=\"mif-folder icon\"></span> edit </a></li>\r\n</ul>";
+	module.exports = "<ul class=\"v-menu navy min-size-required\" v-show=\"viewMenu\" v-el:content v-bind:style=\"{top:top, left:left}\" v-on:blur=\"closeMenu\">\n    <li v-on:click=\"itemClick('open')\"><a href=\"javascript;\" v-on:click.prevent=\"itemClick('open')\"><span class=\"mif-folder icon\"></span> open folder </a></li>\n    <li><a href=\"javascript;\"><span class=\"mif-folder icon\"></span> edit </a></li>\n</ul>";
 
 /***/ },
 /* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.openfolder = exports.createbranch = exports.createproject = undefined;
+
+	var _store = __webpack_require__(12);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var createproject = exports.createproject = function createproject(doc, fn) {
+	    if (fn) {
+	        return _store2.default.createProject(doc);
+	    } else {
+	        return _store2.default.createProject(doc).then(fn, fn);
+	    }
+	};
+
+	var createbranch = exports.createbranch = function createbranch(doc, fn) {
+	    if (fn) {
+	        return _store2.default.createBranch(doc);
+	    } else {
+	        return _store2.default.createBranch(doc).then(fn, fn);
+	    }
+	};
+
+	var openfolder = exports.openfolder = function openfolder(item, fn) {
+	    if (fn) {
+	        return _store2.default.openFolder(item);
+	    } else {
+	        return _store2.default.openFolder(item).then(fn, fn);
+	    }
+	};
+
+/***/ },
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14941,7 +15184,7 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _stepper = __webpack_require__(37);
+	var _stepper = __webpack_require__(38);
 
 	var _stepper2 = _interopRequireDefault(_stepper);
 
@@ -15010,13 +15253,13 @@
 	});
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"wizard\" v-el:wrapper>\r\n    <div class=\"steps\" v-el:content> \r\n        <div class=\"step\" v-for=\"tab in stepkeys\" data-step=\"{{$index}}\">\r\n            <component v-bind:is=\"tab\"></component>\r\n        </div>\r\n        <div class=\"step\" v-if=\"stepinited\">\r\n            <div class=\"notify success\">\r\n                <span class=\"notify-closer\"></span>\r\n                <span class=\"notify-title\">Success</span> \r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n";
+	module.exports = "<div class=\"wizard\" v-el:wrapper>\n    <div class=\"steps\" v-el:content> \n        <div class=\"step\" v-for=\"tab in stepkeys\" data-step=\"{{$index}}\">\n            <component v-bind:is=\"tab\"></component>\n        </div>\n        <div class=\"step\" v-if=\"stepinited\">\n            <div class=\"notify success\">\n                <span class=\"notify-closer\"></span>\n                <span class=\"notify-title\">Success</span> \n            </div>\n        </div>\n    </div>\n</div>\n";
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -15029,11 +15272,11 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _formproject = __webpack_require__(39);
+	var _formproject = __webpack_require__(40);
 
 	var _formproject2 = _interopRequireDefault(_formproject);
 
-	var _projectAction = __webpack_require__(40);
+	var _projectAction = __webpack_require__(36);
 
 	var _store = __webpack_require__(12);
 
@@ -15068,43 +15311,10 @@
 	});
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"grid\">\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目名</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"pname\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目号</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bugid\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div class=\"row\">\r\n        <div class=\"cell\">\r\n            <label>项目别名</label>\r\n            <div class=\"input-control text full-size\">\r\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"palias\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>";
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.createbranch = exports.createproject = undefined;
-
-	var _store = __webpack_require__(12);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var createproject = exports.createproject = function createproject(doc, fn) {
-	    if (fn) {
-	        return _store2.default.createProject(doc);
-	    } else {
-	        return _store2.default.createProject(doc).then(fn, fn);
-	    }
-	};
-
-	var createbranch = exports.createbranch = function createbranch(doc, fn) {
-	    if (fn) {
-	        return _store2.default.createBranch(doc);
-	    } else {
-	        return _store2.default.createBranch(doc).then(fn, fn);
-	    }
-	};
+	module.exports = "<div class=\"grid\">\n    <div class=\"row\">\n        <div class=\"cell\">\n            <label>项目名</label>\n            <div class=\"input-control text full-size\">\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"pname\">\n            </div>\n        </div>\n    </div>\n    <div class=\"row\">\n        <div class=\"cell\">\n            <label>项目号</label>\n            <div class=\"input-control text full-size\">\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bugid\">\n            </div>\n        </div>\n    </div>\n    <div class=\"row\">\n        <div class=\"cell\">\n            <label>项目别名</label>\n            <div class=\"input-control text full-size\">\n                <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"palias\">\n            </div>\n        </div>\n    </div>\n</div>";
 
 /***/ },
 /* 41 */
@@ -15124,7 +15334,7 @@
 
 	var _formbranch2 = _interopRequireDefault(_formbranch);
 
-	var _projectAction = __webpack_require__(40);
+	var _projectAction = __webpack_require__(36);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -15136,8 +15346,9 @@
 	            ptype: '',
 	            atype: '',
 	            pid: '',
+	            bpath: '',
 	            ptypes: [{ value: '1', text: 'qiyiV2' }, { value: '2', text: 'pingback' }, { value: '3', text: 'lib' }, { value: '4', text: 'qiyistore' }],
-	            atypes: [{ value: '1', text: '创建svn' }, { value: '2', text: '不下载代码' }, { value: '3', text: '只下载代码' }]
+	            atypes: [{ value: '1', text: '创建svn' }, { value: '2', text: '不下载代码' }, { value: '3', text: '只下载代码' }, { value: '4', text: '只创建branch纪录' }]
 	        };
 	    },
 
@@ -15147,7 +15358,8 @@
 	                name: this.bname,
 	                projectids: this.pid,
 	                projectcategory: this.ptype,
-	                type: this.atype
+	                type: this.atype,
+	                svnpath: this.bpath
 	            });
 	        }
 	    }
@@ -15157,7 +15369,7 @@
 /* 42 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"grid\">\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支名</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bname\">\r\n        </div>\r\n    </div>\r\n</div>\r\n<!--<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <label>分支目录</label>\r\n        <div class=\"input-control text full-size\">\r\n            <input type=\"text\" placeholder=\"Input you text here...\" >\r\n        </div>\r\n    </div>\r\n</div>-->\r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"ptype\">\r\n                <option v-for=\"opt in ptypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div>   \r\n<div class=\"row\">\r\n    <div class=\"cell\">\r\n        <div class=\"input-control select full-size\">\r\n            <select v-model=\"atype\">\r\n                <option v-for=\"opt in atypes\" v-bind:value=\"opt.value\">\r\n                {{ opt.text }}\r\n              </option>\r\n            </select>\r\n        </div>\r\n    </div>\r\n</div> \r\n</div>\r\n<input type=\"hidden\" v-model=\"pid\">";
+	module.exports = "<div class=\"grid\">\n<div class=\"row\">\n    <div class=\"cell\">\n        <label>分支名</label>\n        <div class=\"input-control text full-size\">\n            <input type=\"text\" placeholder=\"Input you text here...\" v-model=\"bname\">\n        </div>\n    </div>\n</div>\n<div class=\"row\">\n    <div class=\"cell\">\n        <div class=\"input-control select full-size\">\n            <select v-model=\"ptype\">\n                <option v-for=\"opt in ptypes\" v-bind:value=\"opt.value\">\n                {{ opt.text }}\n              </option>\n            </select>\n        </div>\n    </div>\n</div>\n<div class=\"row\">\n    <div class=\"cell\">\n        <div class=\"input-control select full-size\">\n            <select v-model=\"atype\">\n                <option v-for=\"opt in atypes\" v-bind:value=\"opt.value\">\n                {{ opt.text }}\n              </option>\n            </select>\n        </div>\n    </div>\n</div>\n<div class=\"row\" v-if=\"atype==4\">\n    <div class=\"cell\">\n        <label>分支目录</label>\n        <div class=\"input-control text full-size\">\n            <input v-model=\"bpath\" type=\"text\" placeholder=\"branch...\" />\n        </div>\n    </div>\n</div>\n</div>\n<input type=\"hidden\" v-model=\"pid\">";
 
 /***/ },
 /* 43 */
@@ -15170,7 +15382,7 @@
 	});
 	exports.render = render;
 	function render(rawstr) {
-	    var str = "\n    \r\n" + arguments[1] + "\n\t\n    " + arguments[2] + " (" + arguments[4] + ") 【" + arguments[3] + "】\n    ";
+	    var str = "\n    \r\n" + (arguments.length <= 1 ? undefined : arguments[1]) + "\n\t\n    " + (arguments.length <= 2 ? undefined : arguments[2]) + " (" + (arguments.length <= 4 ? undefined : arguments[4]) + ") 【" + (arguments.length <= 3 ? undefined : arguments[3]) + "】\n    ";
 
 	    return str;
 	}
@@ -15200,18 +15412,25 @@
 	    template: _root2.default,
 	    data: function data() {
 	        return {
-	            serverconf: {}
+	            serverconf: {
+	                bugzilla: {}
+	            }
 	        };
 	    },
 
 	    methods: {},
-	    ready: function ready() {
-	        var me = this;
-	        _store2.default.getServerConf(function (d) {
-	            if (d.data) {
-	                me.$set('serverconf', d.data);
-	            }
-	        });
+	    ready: function ready() {},
+
+	    events: {
+	        'on-login': function onLogin() {
+	            var _this = this;
+
+	            _store2.default.getServerConf(function (d) {
+	                if (d.data) {
+	                    _this.$set('serverconf', d.data);
+	                }
+	            });
+	        }
 	    }
 	};
 
@@ -15219,7 +15438,7 @@
 /* 45 */
 /***/ function(module, exports) {
 
-	module.exports = "<div >\r\n<router-view v-bind:serverconf.sync=\"serverconf\"></router-view>\r\n</div>";
+	module.exports = "<div >\n<router-view v-bind:serverconf.sync=\"serverconf\"></router-view>\n</div>";
 
 /***/ }
 /******/ ]);

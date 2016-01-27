@@ -5,10 +5,10 @@ var currentUser,currentPassword,serverConf,logged;
 
 module.exports = {
     setServerconfig: function(config){
-        if(config.projectsvn){
+        if(config.projectsvn && typeof(config.projectsvn) === 'string'){
             config.projectsvn = JSON.parse(config.projectsvn);
         }
-        if(config.projectstatus){
+        if(config.projectstatus && typeof(config.projectstatus) === 'string'){
             config.projectstatus = JSON.parse(config.projectstatus);
         }
         serverConf = config;

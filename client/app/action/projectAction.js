@@ -6,8 +6,8 @@ export const createproject = (doc, fn) => {
     }
     else{
         return store.createProject(doc).then(fn,fn);
-    } 
-}; 
+    }
+};
 
 export const createbranch = (doc, fn) => {
     if(fn){
@@ -15,5 +15,14 @@ export const createbranch = (doc, fn) => {
     }
     else{
         return store.createBranch(doc).then(fn,fn);
-    } 
-}; 
+    }
+};
+
+export const openfolder = (item, fn) => {
+    if(fn){
+        return store.openFolder(item)
+    }
+    else{
+        return store.openFolder(item).then(fn,fn);
+    }
+}

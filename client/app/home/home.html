@@ -1,4 +1,4 @@
-<top-header v-bind:user="$data.user"></top-header>
+<top-header v-bind:user="$data.user" v-bind:bugurl.sync="$data.serverconf.bugzilla"></top-header>
 <div class="page-content">
     <div class="flex-grid no-responsive-future" style="height: 100%;">
         <div class="row" style="height: 100%">
@@ -8,15 +8,12 @@
                 <hr class="thin bg-grayLighter">
                 <button class="button primary" v-on:click.prevent="pushMessage('newProj')"><span class="mif-plus"></span> 新建</button>
                 <button class="button success" v-on:click="pushMessage('weekly')"><span class="mif-play">周报</span> </button>
-                <button class="button warning" v-on:click="pushMessage('refresh')"><span class="mif-loop2"></span> </button> 
+                <button class="button warning" v-on:click="pushMessage('refresh')"><span class="mif-loop2"></span> </button>
                 <hr class="thin bg-grayLighter">
-                <data-table v-bind:lists="$data.project" v-bind:serverconf="serverconf" v-ref:datatable></data-table>
-                
+                <data-table v-bind:lists.sync="project" v-bind:serverconf.sync="$data.serverconf" v-ref:datatable></data-table>
             </div>
         </div>
     </div>
 </div>
-<v-modal v-bind:shown.sync="modal.show" v-bind:content="modal.conHtml" v-bind:header="modal.conHeader" 
-v-bind:steps="modal.steps">
-    
+<v-modal v-bind:shown.sync="modal.show" v-bind:content="modal.conHtml" v-bind:header="modal.conHeader" v-bind:steps="modal.steps">
 </v-modal>

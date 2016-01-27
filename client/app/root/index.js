@@ -6,18 +6,22 @@ export default {
     template: tpl,
     data() {
 	  return {
-		  serverconf:{}
+		  serverconf:{
+            bugzilla:{}
+          }
 	  };
     },
     methods:{
-        
     },
     ready() {
-        let me = this;
-        store.getServerConf(function(d){
-            if(d.data){
-                me.$set('serverconf',d.data);
-            }
-        });
+    },
+    events: {
+        'on-login'(){
+            store.getServerConf( d =>{
+                if(d.data){
+                    this.$set('serverconf',d.data);
+                }
+            });
+        }
     }
 };

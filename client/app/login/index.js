@@ -27,10 +27,11 @@ export default {
             store.login(this.username,this.password).then(
                 data =>{
                     console.log('logined');
+                    this.$dispatch('on-login',{});
                     router.go('home');
-                }, 
+                },
                 data =>{console.log(data)}
-            );  
+            );
         }
     }
 };

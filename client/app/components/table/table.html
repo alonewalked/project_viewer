@@ -8,7 +8,7 @@
         <td class="sortable-column" style="width: 100px">ownerby</td>
         <td class="sortable-column" style="width: 20px">Status</td>
         <td style="width: 20px">Switch</td>
-        <td class="sortable-column" style="width: 100px">SVN path</td>
+        <td class="sortable-column" style="width: 250px;word-break: break-word;">SVN path</td>
     </tr>
     </thead>
     <tbody v-on:contextmenu="openMenu($event)">
@@ -19,7 +19,7 @@
                 <span class="check"></span>
             </label>
         </td>
-        <td ><a href="http://bugzilla.qiyi.domain/show_bug.cgi?id={{item.bugzillaid}}" target="_blank">{{item.bugzillaid}}</a></td>
+        <td ><a v-bind:href.sync="serverconf.bugzilla.show+item.bugzillaid" target="_blank">{{item.bugzillaid}}</a></td>
         <td v-on:click="selectRow($index)">{{item.name}}</td>
         <td><a >{{item.ownerid.name}}</a></td>
         <td class="align-center" >
@@ -36,7 +36,7 @@
                 <span class="check"></span>
             </label>
         </td>
-        <td ><a v-if="item.branchid">{{item.branchid.svnpath}}</a>
+        <td style="width:250px;word-break: break-word;"><a v-if="item.branchid">{{item.branchid.svnpath}}</a>
             <a v-else href="#" v-on:click.prevent="onNewBranch(item._id)">创建svn</a></td>  
     </tr>
     </tbody>

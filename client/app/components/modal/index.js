@@ -8,7 +8,7 @@ export default {
         shown: {
           type: Boolean,
           required: true,
-          twoWay: true    
+          twoWay: true
         },
         content: {
             type: Function

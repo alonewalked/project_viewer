@@ -1,4 +1,4 @@
 <ul class="v-menu navy min-size-required" v-show="viewMenu" v-el:content v-bind:style="{top:top, left:left}" v-on:blur="closeMenu">
-    <li v-on:click="selectItem('open')"><a href="javascript;"><span class="mif-folder icon"></span> open </a></li>
+    <li v-on:click="itemClick('open')"><a href="javascript;" v-on:click.prevent="itemClick('open')"><span class="mif-folder icon"></span> open folder </a></li>
     <li><a href="javascript;"><span class="mif-folder icon"></span> edit </a></li>
 </ul>

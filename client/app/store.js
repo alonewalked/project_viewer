@@ -4,14 +4,16 @@ import { EventEmitter } from 'events';
 import { Promise } from 'es6-promise'; 
 
 const api = new Firebase('https://sweltering-fire-8263.firebaseio.com/app');
+const base_path = 'http://localhost:1212/';
 const config = {
-    login: 'http://localhost:1212/api/login',
-    new_project: 'http://localhost:1212/api/create_project',
-    new_branch: 'http://localhost:1212/api/create_branch',
-    upd_project: 'http://localhost:1212/api/upd_project',
-    projects: 'http://localhost:1212/api/get_data',
-    serverconf: 'http://localhost:1212/api/get_serverconf',
-    weekly:'http://localhost:1212/api/send_weekly'
+    login: base_path+'api/login',
+    new_project: base_path+'api/create_project',
+    new_branch: base_path+'api/create_branch',
+    upd_project: base_path+'api/upd_project',
+    projects: base_path+'api/get_data',
+    serverconf: base_path+'api/get_serverconf',
+    weekly: base_path+'api/send_weekly',
+    open_folder: base_path+'api/open_folder'
 };
 let loginUser = null;
 const store = new EventEmitter();
@@ -27,9 +29,9 @@ api.child('users').on('value', data => {
 // login
 store.login = (uname,pwd) => {
     return new Promise((resolve, reject) => {
-    api.child('users/' + uname)
-    .once('value', data => {
-        if(pwd === data.val()){
+    //api.child('users/' + uname)
+    //.once('value', data => {
+    //    if(pwd === data.val()){
             $.ajax({
                 url:config['login'],
                 data:{
@@ -46,11 +48,11 @@ store.login = (uname,pwd) => {
                     reject(err)
                 }
             });
-        }
-        else{
-            reject('password error');
-        }
-    }, reject);
+        //}
+        //else{
+        //    reject('password error');
+        //}
+    //}, reject);
   })
 }; 
 store.getLoginUser = function(){
@@ -161,5 +163,23 @@ store.sendWeekly = function(html, callback){
          });
      });
 };
-
+store.openFolder = function(item, callback){
+    return new Promise((resolve, reject) =>{
+        $.ajax({
+            dataType: 'jsonp',
+            url: config.open_folder,
+            data: {
+                "folder":'test1'
+            },
+            success: function(d){
+                if(d.code==='A00000'){
+                    resolve(d);
+                }
+                else{
+                    reject(d);
+                }
+            }
+         });
+     });
+}
 export default store;

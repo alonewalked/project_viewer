@@ -43,11 +43,6 @@ var app = {
 
 app.start('mongodb://10.1.30.43:27017/test',function(data){
     console.log(JSON.stringify(data));
-    serverconfig.getServerConfig(function(data){
-        if(data.code === 'A00000'){
-            instance.setServerconfig(data.data);
-        }
-    })
 });
 
 
@@ -62,5 +57,6 @@ exports['testUser'] = require('./apis/testUser');
 // utils
 require('./utils/date');
 exports['svn'] = require('./utils/svn');
+exports['sysfile'] = require('./utils/sysfile');
 exports['ppt'] = require('./utils/ppt');
 exports['email'] = require('./utils/email');

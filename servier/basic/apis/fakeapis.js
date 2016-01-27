@@ -1,5 +1,5 @@
 // fakeapi 
-var fakeApiDao = require('../dao/fakeApiDao'); 
+var fakeApiDao = require('../dao/FakeApiDao'); 
 var instance = require('../instance');
 module.exports = {
     /* 添加接口

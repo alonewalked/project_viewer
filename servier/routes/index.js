@@ -16,5 +16,6 @@ router.post("/api/create_project", service.createProject);
 router.post("/api/create_branch", service.createBranch);
 router.post("/api/send_weekly", service.sendWeekly);
 router.post('/api/upd_project', service.updProject);
+router.get('/api/open_folder', service.openFolder);
 
 module.exports = router;

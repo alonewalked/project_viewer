@@ -1,5 +1,5 @@
 // branch api
-var branchDao = require('../dao/branchDao');
+var branchDao = require('../dao/BranchDao');
 var instance = require('../instance');
 var svn = require('../utils/svn'); 
 var $q = require('q');

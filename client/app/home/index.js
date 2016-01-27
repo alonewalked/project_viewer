@@ -33,14 +33,14 @@ export default {
         return {
             regurl:'',
             data: {
-                user: null,
-                project:null
+                user: {},
+                project:[]
             },
             modal: {
                 showModal:false,
                 conHtml:null,
                 conHeader:'',
-                steps: { 
+                steps: {
                     'form-project':formproject,
                     'form-branch':formbranch 
                     }
@@ -51,18 +51,20 @@ export default {
     created() {
         let me = this;
         this.$set('user',store.getLoginUser());
-        this.refreshData(); 
+        this.refreshData();
     },
     methods: {
         getTableChild() {
             /*var _chd = this.$children.filter(function(item){
-                return (item instanceof table) 
+                return (item instanceof table)
             });
-            return _chd?_chd[0]:null;*/  
+            return _chd?_chd[0]:null;*/
             return this.$refs.datatable;
         },
         refreshData() {
             store.getProject(d => this.$set('project',d.data));
+            let dt = this.getTableChild();
+            dt && dt.clearup();
         },
         pushMessage(cmd) {
             switch(cmd){

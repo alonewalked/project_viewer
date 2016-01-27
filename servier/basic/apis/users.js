@@ -1,5 +1,5 @@
 // user api
-var userDao = require('../dao/userDao');
+var userDao = require('../dao/UserDao');
 var instance = require('../instance');
 var $q = require('q');
 module.exports = {
@@ -93,7 +93,6 @@ module.exports = {
         else{
             return finder;
         }
-        
     },
     /* 查询用户
      * @param {Object} condition

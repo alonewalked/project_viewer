@@ -6,10 +6,16 @@ export default {
     props:{
         user:{
             type: Object
+        },
+        bugurl: {
+            type:Object,
+            twoWay:true
         }
     },
     data() {
         return {
         };
+    },
+    ready(){ 
     }
 };
